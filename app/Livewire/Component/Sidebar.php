@@ -2,16 +2,13 @@
 
 namespace App\Livewire\Component;
 
+use App\Livewire\Traits\Collapsible;
 use Livewire\Component;
 
 class Sidebar extends Component
 {
 
-    public $isCollapsed = false;
-
-    public function toggleSidebar() {
-        $this->isCollapsed = !$this->isCollapsed;
-    }
+    use Collapsible;
 
     public function render()
     {
