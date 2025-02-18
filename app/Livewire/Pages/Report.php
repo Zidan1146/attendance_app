@@ -2,9 +2,7 @@
 
 namespace App\Livewire\Pages;
 
-use Livewire\Component;
-
-class Report extends Component
+class Report extends BasePage
 {
     public function render()
     {

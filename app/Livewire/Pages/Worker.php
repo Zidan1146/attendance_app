@@ -2,9 +2,7 @@
 
 namespace App\Livewire\Pages;
 
-use Livewire\Component;
-
-class Worker extends Component
+class Worker extends BasePage
 {
     public function render()
     {
