@@ -4,7 +4,7 @@
     <h1 class="text-2xl">Data Karyawan</h1>
 
     <div class="container flex flex-col items-center justify-center">
-        <div class="w-1/2 grid items-center justify-center grid-cols-[3fr_1fr] gap-4 my-4">
+        <div class="w-2/3 grid items-center justify-center grid-cols-[3fr_1fr] gap-4 my-4">
             <form action="" method="GET">
                 <div class="flex w-full">
                     <label class="flex items-center w-full gap-2 input input-bordered bg-neutral">
@@ -19,11 +19,11 @@
             </form>
             <button class="btn btn-primary">Buat Laporan</button>
         </div>
-        <div class="flex justify-start w-1/2">
+        <div class="flex justify-start w-2/3">
             <button class="btn btn-primary">Buat Karyawan</button>
         </div>
 
-        <div class="flex flex-col w-1/2 gap-6 overflow-x-auto">
+        <div class="flex flex-col w-2/3 gap-6 overflow-x-auto">
             <table class="table w-full">
                 <thead>
                     <th></th>

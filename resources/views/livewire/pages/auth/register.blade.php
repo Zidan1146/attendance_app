@@ -29,10 +29,7 @@
                 </div>
                 <div class="flex items-center justify-center w-full">
                     <div class="flex flex-col w-full min-w-40 gapy-2">
-                        <p>Selected: {{ $selectedRole }}</p>
-                        <p>IsHR: {{ $isHr }}</p>
-                        <label for="position" class="text-lg">Jabatan</label>
-                        <select wire:model.live="selectedRole" name="position" id="position" class="text-lg rounded-sm bg-zinc-50 input input-bordered min-h-6">
+                        <select wire:model.live="selectedRole" name="position" id="position" class="text-lg rounded-sm bg-zinc-50 select select-bordered min-h-6">
                             @foreach ($roles as $role)
                                 <option value="{{ $role->value }}">{{ $role->name }}</option>
                             @endforeach
