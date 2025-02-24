@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\SOAPTest;
 use App\Livewire\Layout\MainLayout;
 use App\Livewire\Pages\Attendance;
 use App\Livewire\Pages\Auth\Login;
@@ -21,4 +22,9 @@ Route::get('/worker', Worker::class)->name('worker');
 Route::get('/report', Report::class)->name('report');
 Route::get('/login', Login::class)->name('login');
 Route::get('/register', Register::class)->name('register');
+
+Route::get('/soap', function () {
+    return view('soap.test');
+});
+Route::post('/soap/test', [SOAPTest::class, 'callSoap'])->name('soap.test');
 

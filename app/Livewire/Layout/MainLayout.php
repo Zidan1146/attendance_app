@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Layout;
 
-use App\Livewire\Traits\Collapsible;
 use Livewire\Component;
 
 class MainLayout extends Component
