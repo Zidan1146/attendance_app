@@ -13,8 +13,6 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/app', MainLayout::class);
-
 Route::get('/dashboard', Dashboard::class)->name('dashboard');
 Route::get('/absensi', Attendance::class)->name('absensi');
 Route::get('/worker', Worker::class)->name('worker');
