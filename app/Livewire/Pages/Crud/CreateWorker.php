@@ -1,40 +1,26 @@
 <?php
 
-namespace App\Livewire\Pages\Auth;
+namespace App\Livewire\Pages\Crud;
 
 use App\Enums\RolePosition;
 use App\Models\Karyawan;
-use Illuminate\Validation\Rule;
-use Livewire\Attributes\Validate;
-use Livewire\Component;
+use App\Livewire\Forms\CreateWorkerForm as WorkerForm;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
+use Livewire\Component;
 
-class Register extends Component
+class CreateWorker extends Component
 {
-
-    #[Validate('required')]
-    public $nama;
-
-    #[Validate('required')]
-    public $alamat;
-
-    #[Validate('required|regex:/^(8\d{2})[-\s]?\d{3,4}[-\s]?\d{3,4}$/')]
-    public $noTelepon;
-
-    #[Validate('required')]
-    public $jabatan = RolePosition::HR->value;
-
-    #[Validate('required|unique:karyawans,username|regex:/^[a-zA-Z0-9_]{3,16}$/')]
-    public $username;
-
-    #[Validate('required|min:8')]
-    public $password;
+    public WorkerForm $form;
+    public $roles;
 
     public function mount() {
-        if(Auth::check()) {
-            $this->redirectRoute('dashboard');
+        if(!Auth::check()) {
+            $this->redirectRoute('login');
+            return;
         }
+        $this->roles = RolePosition::cases();
     }
 
     public function updated($name, $value)
@@ -43,7 +29,7 @@ class Register extends Component
     }
 
     private function clearVariables() {
-        foreach($this->all() as $property) {
+        foreach($this->form->all() as $property) {
             if($property === 'jabatan') {
                 $this->$property = RolePosition::HR->value;
                 continue;
@@ -71,21 +57,22 @@ class Register extends Component
         ];
     }
 
-    public function register() {
-        $this->validate();
+    public function store() {
+        $this->form->validate();
 
-        $this->noTelepon = "+62$this->noTelepon";
+        $this->form->noTelepon = "+62{$this->form->noTelepon}";
+
         Karyawan::create(
-            $this->all()
+            $this->form->all()
         );
 
-        return back()->with("message", "Success");
+        $this->clearVariables();
+        $this->redirectRoute('worker');
     }
 
     public function render()
     {
-        $roles = RolePosition::cases();
-
-        return view('livewire.pages.auth.register', compact('roles'));
+        $roles = $this->roles;
+        return view('livewire.pages.crud.create-worker', compact('roles'));
     }
 }

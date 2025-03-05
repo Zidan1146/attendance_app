@@ -3,9 +3,9 @@
 namespace App\Models;
 
 use App\Enums\RolePosition;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class Karyawan extends Model
+class Karyawan extends Authenticatable
 {
     protected $fillable = [
         'nama',

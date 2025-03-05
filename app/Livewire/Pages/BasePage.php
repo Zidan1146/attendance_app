@@ -2,6 +2,7 @@
 namespace App\Livewire\Pages;
 
 use App\Livewire\Traits\WithRouteInfo;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Session;
 use Livewire\Component;
 
@@ -19,5 +20,10 @@ abstract class BasePage extends Component {
     public function mount()
     {
         $this->mountWithRouteInfo();
+    }
+
+    public function logout_() {
+        Auth::logout();
+        $this->redirectRoute('login');
     }
 }
