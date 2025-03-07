@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use App\Enums\RolePosition;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class Karyawan extends Authenticatable
 {
+    use HasFactory;
+
     protected $fillable = [
         'nama',
         'alamat',

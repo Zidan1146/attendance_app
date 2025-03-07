@@ -53,7 +53,7 @@ class Report extends BasePage
             $workersQuery->where('jabatan', '=', $this->selectedRole);
         }
 
-        $workers = $workersQuery->paginate(10);
+        $workers = $workersQuery->paginate(5);
         return view(
             'livewire.pages.report',
             compact(

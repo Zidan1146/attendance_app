@@ -4,11 +4,11 @@
     <h1 class="text-2xl">Data Karyawan</h1>
 
     <div class="container flex flex-col items-center justify-center">
-        <div class="w-2/3 grid items-center justify-center grid-cols-[3fr_1fr] gap-4 my-4">
+        <div class="w-full grid items-center justify-center grid-cols-[3fr_1fr] gap-4 my-4">
             <form action="" method="GET">
                 <div class="flex w-full">
                     <label class="flex items-center w-full gap-2 input input-bordered bg-neutral">
-                        <input type="text" name="" id="" placeholder="Search" class="grow">
+                        <input type="text" name="" id="" placeholder="Search" class="grow" wire:model.live.debounce.1000ms="search">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="size-4">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -19,11 +19,18 @@
             </form>
             <button class="btn btn-primary">Buat Laporan</button>
         </div>
-        <div class="flex justify-start w-2/3">
-            <a href="{{ route('worker.create') }}" wire:navigate class="btn btn-primary">Buat Karyawan</a>
+        <div class="flex justify-start w-full">
+            <a href="{{ route('worker.create') }}" wire:navigate class="btn btn-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                    class="size-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+
+                Tambah Karyawan Baru
+            </a>
         </div>
 
-        <div class="flex flex-col w-2/3 gap-6 overflow-x-auto">
+        <div class="flex flex-col w-full gap-6 overflow-x-auto">
             <table class="table w-full">
                 <thead>
                     <th></th>

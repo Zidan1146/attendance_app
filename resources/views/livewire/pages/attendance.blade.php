@@ -4,8 +4,8 @@
     <h1 class="text-2xl">Data Absen</h1>
 
     <div class="container flex flex-col items-center justify-center">
-        <div class="w-2/3 grid items-center justify-center grid-cols-[3fr_1fr] gap-4 my-4">
-            <form action="" method="GET">
+        <div class="w-full grid items-center justify-center grid-cols-[3fr_1fr] gap-4 my-4">
+            <form method="GET">
                 <div class="flex w-full">
                     <label class="flex items-center w-full gap-2 input input-bordered bg-neutral">
                         <input type="text" name="" id="" placeholder="Search" class="grow">
@@ -19,61 +19,101 @@
             </form>
             <button class="btn btn-primary">Buat Laporan</button>
         </div>
-        <div class="flex w-2/3 gap-4">
-            <label class="w-1/3">
-                <div class="label">
-                    <span class="label-text">Dari Tanggal</span>
+        <div class="flex justify-between w-full gap-4">
+            <div class="">
+                <label class="label">
+                    Tanggal
+                </label>
+                <div class="join join-horizontal">
+                    <select name="" id="" class="w-full join-item select bg-neutral select-bordered" wire:model.live="startDate">
+                        <option value="">Semua tanggal</option>
+                        <option value="" disabled>-- Dari Tanggal --</option>
+                        @foreach ($availableDates as $date)
+                            <option value="{{ $date }}">{{ $date->translatedFormat('j F Y') }}</option>
+                        @endforeach
+                    </select>
+                    <select name="" id="" class="w-full select join-item bg-neutral select-bordered" wire:model.live="endDate">
+                        <option value="">Semua tanggal</option>
+                        <option value="" disabled>-- Sampai Tanggal --</option>
+                        @foreach ($availableDates as $date)
+                            <option value="{{ $date }}">{{ $date->translatedFormat('j F Y') }}</option>
+                        @endforeach
+                    </select>
                 </div>
-                <select name="" id="" class="w-full select bg-neutral select-bordered">
-                    <option value="">1 Jan 2025</option>
-                </select>
-            </label>
-            <label class="w-1/3">
+            </div>
+            <div class="">
                 <div class="label">
-                    <span class="label-text">Sampai Tanggal</span>
+                    <span class="label-text">Filter</span>
                 </div>
-                <select name="" id="" class="w-full select bg-neutral select-bordered">
-                    <option value="">5 Jan 2025</option>
-                </select>
-            </label>
-            <label class="w-1/3">
-                <div class="label">
-                    <span class="label-text">Jabatan</span>
+                <div class="join">
+                    <select name="" id="" class="select bg-neutral select-bordered join-item" wire:model.live="selectedRole">
+                        <option value="">Semua Jabatan</option>
+                        @foreach ($roles as $jabatan)
+                            <option value="{{ $jabatan->value }}">{{ $jabatan->name }}</option>
+                        @endforeach
+                    </select>
+                    <select name="" id="" class="select bg-neutral select-bordered join-item" wire:model.live="selectedAttendanceType">
+                        <option value="">Semua Jenis Absen</option>
+                        @foreach ($attendaceTypes as $type)
+                            <option value="{{ $type->value }}">{{ $type->name }}</option>
+                        @endforeach
+                    </select>
+                    <select name="" id="" class="select bg-neutral select-bordered join-item" wire:model.live="selectedAttendanceStatus">
+                        <option value="">Semua Status Absen</option>
+                        @foreach ($attendanceStatuses as $status)
+                            <option value="{{ $status->value }}">{{ $status->name }}</option>
+                        @endforeach
+                    </select>
                 </div>
-                <select name="" id="" class="w-full select bg-neutral select-bordered">
-                    <option value="">Semua</option>
-                    <option value="">IT</option>
-                    <option value="">HR</option>
-                    <option value="">Animator</option>
-                </select>
-            </label>
+            </div>
         </div>
 
-        <div class="flex flex-col w-2/3 gap-6 overflow-x-auto">
+        <div class="flex flex-col w-full gap-6 overflow-x-auto">
             <table class="table w-full">
                 <thead>
                     <th></th>
                     <th>Nama</th>
+                    <th>Jabatan</th>
                     <th>Tanggal</th>
                     <th>Jam</th>
                     <th>Jenis</th>
                     <th>Status</th>
                 </thead>
                 <tbody>
-                    <td>11</td>
-                    <td>John Doe</td>
-                    <td>1 Januari 2025</td>
-                    <td>08:08</td>
-                    <td>Masuk</td>
-                    <td>Tepat Waktu</td>
+                    @foreach ($dataAbsensi as $absensi)
+                                            @php
+                        $jenis = match ($absensi->jenisAbsen) {
+                                $jenisAbsenEnum::AbsenMasuk => 'Masuk',
+                                $jenisAbsenEnum::AbsenKeluar => 'Keluar',
+                                $jenisAbsenEnum::Lembur => $jenisAbsenEnum::Lembur,
+                            default => '',
+                        };
+                        $statusStyling = match ($absensi->status) {
+                                $statusAbsenEnum::TidakDiketahui => 'bg-error text-zinc-50',
+                                $statusAbsenEnum::TepatWaktu => 'bg-success',
+                                $statusAbsenEnum::Terlambat => 'bg-error text-zinc-50',
+                                $statusAbsenEnum::LebihAwal => 'bg-warning',
+                                $statusAbsenEnum::TidakAbsen => 'bg-error text-zinc-50',
+                            default => ''
+                        }
+                        @endphp
+                        <tr>
+                            <td>{{ $loop->iteration + $startNumber }}</td>
+                            <td>{{ $absensi->karyawan->nama }}</td>
+                            <td>{{ $absensi->karyawan->jabatan->name }}</td>
+                            <td>{{ $absensi->tanggal->translatedFormat('j F Y') }}</td>
+                            <td>{{ $absensi->waktu }}</td>
+                            <td>{{ $jenis }}</td>
+                            <td>
+                                <span class="{{ $statusStyling }} py-1 px-2 rounded-xl">
+                                    {{ preg_replace('/([a-z])([A-Z])/', '$1 $2', ucfirst($absensi->status->value)) }}
+                                </span>
+                            </td>
+                        </tr>
+                    @endforeach
                 </tbody>
             </table>
-            <div class="join">
-                <button class="join-item btn btn-primary">1</button>
-                <button class="join-item btn btn-primary btn-active">2</button>
-                <button class="join-item btn btn-primary">3</button>
-                <button class="join-item btn btn-primary">4</button>
-            </div>
+            {{ $dataAbsensi->links() }}
         </div>
     </div>
 @endsection

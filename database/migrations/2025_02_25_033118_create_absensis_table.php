@@ -1,7 +1,7 @@
 <?php
 
-use App\Enums\AttendanceStatus;
-use App\Enums\AttendanceType;
+use App\Enums\StatusAbsen;
+use App\Enums\TipeAbsensi;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -15,21 +15,21 @@ return new class extends Migration
     {
         try {
             Schema::create('absensis', function (Blueprint $table) {
-                $allowedAttendanceType = array_map(
+                $allowedTipeAbsensi = array_map(
                     fn($case) => $case->value,
-                    AttendanceType::cases()
+                    TipeAbsensi::cases()
                 );
 
                 $allowedStatus = array_map(
                     fn($case) => $case->value,
-                    AttendanceStatus::cases()
+                    StatusAbsen::cases()
                 );
 
                 $table->id();
 
                 $table->date('tanggal');
                 $table->time('waktu');
-                $table->enum('jenisAbsen', $allowedAttendanceType);
+                $table->enum('jenisAbsen', $allowedTipeAbsensi);
                 $table->enum('status', $allowedStatus);
                 $table->text('deskripsi')->nullable();
 

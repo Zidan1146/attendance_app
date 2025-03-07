@@ -1,7 +1,7 @@
 <?php
     namespace App\Enums;
 
-    enum AttendanceStatus:string {
+    enum StatusAbsen:string {
         case TidakDiketahui = "tidakDiketahui";
         case TepatWaktu = "tepatWaktu";
         case Terlambat = "terlambat";

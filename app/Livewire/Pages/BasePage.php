@@ -5,9 +5,11 @@ use App\Livewire\Traits\WithRouteInfo;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Session;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 abstract class BasePage extends Component {
     use WithRouteInfo;
+    use WithPagination;
 
     #[Session('isCollapsed')]
     public $isCollapsed = false;

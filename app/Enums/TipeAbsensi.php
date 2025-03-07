@@ -1,7 +1,7 @@
 <?php
     namespace App\Enums;
 
-    enum AttendanceType:string {
+    enum TipeAbsensi:string {
         case AbsenMasuk = "absenMasuk";
         case AbsenKeluar = "absenKeluar";
         case Lembur = "lembur";
