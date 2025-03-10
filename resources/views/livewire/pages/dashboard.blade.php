@@ -5,44 +5,37 @@
         <h1 class="text-2xl">Dashboard</h1>
         <div class="flex flex-col text-2xl text-right">
             <span>
-                Selasa, 2 Januari 2025
+                {{ $dateNow }}
             </span>
-            <span>
-                10:00:21
-            </span>
+            <div x-data="{ time: '{{ now()->translatedFormat('H:i:s') }}' }"
+                x-init="setInterval(() => time = new Date().toLocaleTimeString('id-ID'), 1000)">
+                <span x-text="time"></span>
+            </div>
         </div>
     </div>
 
     <div class="flex justify-center w-full">
-        <div class="flex flex-col justify-center w-2/3 gap-y-3">
+        <div class="flex flex-col justify-center w-4/5 gap-y-3">
             <div class="shadow stats">
                 <div class="stat bg-success">
-                    <div class="stat-figure">
-                        <div class="stat-title">Presensi Tepat Waktu</div>
-                        <div class="stat-value">118</div>
-                        <div class="stat-desc">118 dari 178 orang</div>
-                    </div>
+                    <div class="stat-title">Presensi Tepat Waktu</div>
+                    <div class="stat-value">{{ $clockInCount }}</div>
+                    <div class="stat-desc">{{ $clockInCount }} dari {{ $userCount }} orang</div>
                 </div>
                 <div class="bg-yellow-200 stat">
-                    <div class="stat-figure">
-                        <div class="stat-title">Terlambat Masuk</div>
-                        <div class="stat-value">30</div>
-                        <div class="stat-desc">30 dari 178 orang</div>
-                    </div>
+                    <div class="stat-title">Terlambat Masuk</div>
+                    <div class="stat-value">{{ $lateCount }}</div>
+                    <div class="stat-desc">{{ $lateCount }} dari {{ $userCount }} orang</div>
                 </div>
                 <div class="stat bg-warning">
-                    <div class="stat-figure">
-                        <div class="stat-title">Pulang Lebih Awal</div>
-                        <div class="stat-value">16</div>
-                        <div class="stat-desc">16 dari 178 orang</div>
-                    </div>
+                    <div class="stat-title">Pulang Lebih Awal</div>
+                    <div class="stat-value">{{ $earlyClockOut }}</div>
+                    <div class="stat-desc">{{ $earlyClockOut }} dari {{ $userCount }} orang</div>
                 </div>
                 <div class="stat bg-error">
-                    <div class="stat-figure">
-                        <div class="stat-title">Tidak Absen</div>
-                        <div class="stat-value">38</div>
-                        <div class="stat-desc">38 dari 178 orang</div>
-                    </div>
+                    <div class="stat-title">Tidak Absen</div>
+                    <div class="stat-value">{{ $absentCount }}</div>
+                    <div class="stat-desc">{{ $absentCount }} dari {{ $userCount }} orang</div>
                 </div>
             </div>
             <div class="flex justify-around gap-8">
@@ -66,16 +59,14 @@
                                 <span>Download</span>
                             </a>
                         </div>
-                        <form action="GET">
-                            <label class="flex items-center gap-2 input input-sm input-bordered bg-neutral">
-                                <input type="text" name="" id="" placeholder="Search" class="grow">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-                                    class="size-4">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-                                </svg>
-                            </label>
-                        </form>
+                        <div class="flex items-center gap-2 input input-sm input-bordered bg-neutral">
+                            <input type="text" name="" id="" placeholder="Search" class="grow" wire:model.live.debounce.1000ms="searchTerm">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                                class="size-4">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                            </svg>
+                        </div>
                     </div>
                     <div class="flex flex-col w-full gap-6 overflow-x-auto">
                         <table class="table w-full text-xs">
@@ -87,49 +78,38 @@
                                 <th>Status</th>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>11</td>
-                                    <td>John Doe</td>
-                                    <td>08:08</td>
-                                    <td>Masuk</td>
-                                    <td>Tepat Waktu</td>
-                                </tr>
-                                <tr>
-                                    <td>11</td>
-                                    <td>John Doe</td>
-                                    <td>08:08</td>
-                                    <td>Masuk</td>
-                                    <td>Tepat Waktu</td>
-                                </tr>
-                                <tr>
-                                    <td>11</td>
-                                    <td>John Doe</td>
-                                    <td>08:08</td>
-                                    <td>Masuk</td>
-                                    <td>Tepat Waktu</td>
-                                </tr>
-                                <tr>
-                                    <td>11</td>
-                                    <td>John Doe</td>
-                                    <td>08:08</td>
-                                    <td>Masuk</td>
-                                    <td>Tepat Waktu</td>
-                                </tr>
-                                <tr>
-                                    <td>11</td>
-                                    <td>John Doe</td>
-                                    <td>08:08</td>
-                                    <td>Masuk</td>
-                                    <td>Tepat Waktu</td>
-                                </tr>
+                                @foreach ($todayData as $absensi)
+                                    @php
+                                        $jenis = match ($absensi->jenisAbsen) {
+                                                $jenisAbsenEnum::AbsenMasuk => 'Masuk',
+                                                $jenisAbsenEnum::AbsenKeluar => 'Keluar',
+                                                $jenisAbsenEnum::Lembur => $jenisAbsenEnum::Lembur,
+                                            default => '',
+                                        };
+                                        $statusStyling = match ($absensi->status) {
+                                                $statusAbsenEnum::TidakDiketahui => 'bg-error text-zinc-50',
+                                                $statusAbsenEnum::TepatWaktu => 'bg-success',
+                                                $statusAbsenEnum::Terlambat => 'bg-error text-zinc-50',
+                                                $statusAbsenEnum::LebihAwal => 'bg-warning',
+                                                $statusAbsenEnum::TidakAbsen => 'bg-error text-zinc-50',
+                                            default => ''
+                                        }
+                                    @endphp
+                                    <tr>
+                                        <td>{{ $loop->iteration + $startNumber }}</td>
+                                        <td>{{ $absensi->karyawan->nama }}</td>
+                                        <td>{{ $absensi->waktu }}</td>
+                                        <td>{{ $jenis }}</td>
+                                        <td>
+                                            <span class="{{ $statusStyling }} py-1 px-2 rounded-xl">
+                                                {{ preg_replace('/([a-z])([A-Z])/', '$1 $2', ucfirst($absensi->status->value)) }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                @endforeach
                             </tbody>
                         </table>
-                        <div class="join">
-                            <button class="join-item btn btn-primary">1</button>
-                            <button class="join-item btn btn-primary btn-active">2</button>
-                            <button class="join-item btn btn-primary">3</button>
-                            <button class="join-item btn btn-primary">4</button>
-                        </div>
+                        {{ $todayData->links() }}
                     </div>
                 </div>
             </div>

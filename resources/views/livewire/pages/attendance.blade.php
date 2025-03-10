@@ -8,7 +8,7 @@
             <form method="GET">
                 <div class="flex w-full">
                     <label class="flex items-center w-full gap-2 input input-bordered bg-neutral">
-                        <input type="text" name="" id="" placeholder="Search" class="grow">
+                        <input type="text" name="" id="" placeholder="Search" class="grow" wire:model.live.debounce.1000ms="searchTerm">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
                             class="size-4">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -81,21 +81,21 @@
                 </thead>
                 <tbody>
                     @foreach ($dataAbsensi as $absensi)
-                                            @php
-                        $jenis = match ($absensi->jenisAbsen) {
-                                $jenisAbsenEnum::AbsenMasuk => 'Masuk',
-                                $jenisAbsenEnum::AbsenKeluar => 'Keluar',
-                                $jenisAbsenEnum::Lembur => $jenisAbsenEnum::Lembur,
-                            default => '',
-                        };
-                        $statusStyling = match ($absensi->status) {
-                                $statusAbsenEnum::TidakDiketahui => 'bg-error text-zinc-50',
-                                $statusAbsenEnum::TepatWaktu => 'bg-success',
-                                $statusAbsenEnum::Terlambat => 'bg-error text-zinc-50',
-                                $statusAbsenEnum::LebihAwal => 'bg-warning',
-                                $statusAbsenEnum::TidakAbsen => 'bg-error text-zinc-50',
-                            default => ''
-                        }
+                        @php
+                            $jenis = match ($absensi->jenisAbsen) {
+                                    $jenisAbsenEnum::AbsenMasuk => 'Masuk',
+                                    $jenisAbsenEnum::AbsenKeluar => 'Keluar',
+                                    $jenisAbsenEnum::Lembur => $jenisAbsenEnum::Lembur,
+                                default => '',
+                            };
+                            $statusStyling = match ($absensi->status) {
+                                    $statusAbsenEnum::TidakDiketahui => 'bg-error text-zinc-50',
+                                    $statusAbsenEnum::TepatWaktu => 'bg-success',
+                                    $statusAbsenEnum::Terlambat => 'bg-error text-zinc-50',
+                                    $statusAbsenEnum::LebihAwal => 'bg-warning',
+                                    $statusAbsenEnum::TidakAbsen => 'bg-error text-zinc-50',
+                                default => ''
+                            }
                         @endphp
                         <tr>
                             <td>{{ $loop->iteration + $startNumber }}</td>

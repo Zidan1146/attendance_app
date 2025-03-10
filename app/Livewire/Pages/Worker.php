@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Pages;
 
+use App\Models\Absensi;
 use App\Models\Karyawan;
 use Livewire\WithPagination;
 
@@ -16,6 +17,7 @@ class Worker extends BasePage
     }
 
     public function delete($id) {
+        Absensi::where('karyawan_id', '=', $id)->delete();
         Karyawan::destroy($id);
 
         session()->flash('message', 'Data deleted successful');
@@ -29,6 +31,11 @@ class Worker extends BasePage
             ->orWhere('alamat', 'like', "%{$this->search}%")
             ->orWhere('noTelepon', 'like', "%{$this->search}%")
             ->paginate(10);
-        return view('livewire.pages.worker', compact('workers'));
+
+        $perPage = $workers->perPage();
+        $currentPage = $workers->currentPage();
+        $startNumber = ($currentPage - 1) * $perPage;
+
+        return view('livewire.pages.worker', compact('workers', 'startNumber'));
     }
 }

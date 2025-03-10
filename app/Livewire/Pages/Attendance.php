@@ -20,6 +20,7 @@ class Attendance extends BasePage
     public $endDate;
     public $jenisAbsenEnum;
     public $statusAbsenEnum;
+    public $searchTerm;
 
     public function updating($property) {
         $isDataSelection =
@@ -59,6 +60,11 @@ class Attendance extends BasePage
         }
         if($this->startDate && $this->endDate) {
             $absensiQuery->whereBetween('tanggal', [$this->startDate, $this->endDate]);
+        }
+        if($this->searchTerm) {
+            $absensiQuery->whereHas('karyawan', function($query) {
+                $query->where('nama', 'like', "%{$this->searchTerm}%");
+            });
         }
 
         $dataAbsensi = $absensiQuery->orderBy('tanggal')->paginate(10);

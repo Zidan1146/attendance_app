@@ -48,7 +48,7 @@
                         <path
                             d="M12.971 1.816A5.23 5.23 0 0 1 14.25 5.25v1.875c0 .207.168.375.375.375H16.5a5.23 5.23 0 0 1 3.434 1.279 9.768 9.768 0 0 0-6.963-6.963Z" />
                     </svg>
-                    
+
                     Download as file
                 </button>
             </div>
@@ -68,15 +68,58 @@
                 </thead>
                 <tbody>
                     @foreach ($workers as $karyawan)
-                        <tr>
-                            <td class="p-2 border border-gray-300">{{ $loop->iteration }}</td>
+                        <tr wire:key="karyawan-{{ $karyawan->id }}">
+                            <td class="p-2 border border-gray-300">{{ $loop->iteration + $startNumber }}</td>
                             <td class="p-2 border border-gray-300">{{ $karyawan->nama }}</td>
                             <td class="p-2 border border-gray-300">{{ $karyawan->jabatan->name }}</td>
-                            <td class="p-0 text-center text-white bg-green-500 border border-gray-300">v</td>
+                            @php
+                                $previousValue = 0;
+                            @endphp
+                            @foreach ($karyawan->absensi as $absensi)
+                                @foreach ($days as $day)
+                                    @continue($previousValue >= $day['day_number'])
+                                    @break((int)$now->format('j') < $day['day_number'] && (int)$now->month <= $selectedMonth)
+                                    @if ($loop->parent->last)
+                                        @php
+                                            $previousValue = 0;
+                                        @endphp
+                                    @endif
+
+                                    @if ($loop->parent->last && ((int) $absensi->tanggal->format('j') <= $day['day_number']))
+                                        @if ((int) $absensi->tanggal->format('j') === $day['day_number'])
+                                            <td class="p-0 m-0 text-center bg-success">v</td>
+                                        @elseif($day['is_weekend'])
+                                            <td class="p-0 m-0 text-center bg-error"></td>
+                                        @else
+                                            <td class="p-0 m-0 text-center bg-warning">a</td>
+                                        @endif
+                                        @continue
+                                    @endif
+
+                                    @if($day['is_weekend'])
+                                        <td class="p-0 m-0 text-center bg-error"></td>
+                                        @if ((int) $absensi->tanggal->format('j') === $day['day_number'])
+                                            @php
+                                                $previousValue = $day['day_number'];
+                                            @endphp
+                                        @break
+                                        @endif
+                                    @elseif ((int) $absensi->tanggal->format('j') === $day['day_number'])
+                                        <td class="p-0 m-0 text-center bg-success">v</td>
+                                        @php
+                                            $previousValue = $day['day_number'];
+                                        @endphp
+                                        @break
+                                    @else
+                                        <td class="p-0 m-0 text-center bg-warning">a</td>
+                                    @endif
+                                @endforeach
+                            @endforeach
+                            {{-- <td class="p-0 text-center text-white bg-green-500 border border-gray-300">v</td>
                             <td class="p-0 text-center text-black bg-pink-300 border border-gray-300">tl</td>
                             <td class="p-0 text-center text-black bg-blue-300 border border-gray-300">pw</td>
                             <td class="p-0 text-center text-white bg-green-500 border border-gray-300">v</td>
-                            <td class="p-0 text-center text-black bg-pink-300 border border-gray-300">tp</td>
+                            <td class="p-0 text-center text-black bg-pink-300 border border-gray-300">tp</td> --}}
                         </tr>
                     @endforeach
                 </tbody>

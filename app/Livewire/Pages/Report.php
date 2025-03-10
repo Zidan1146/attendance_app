@@ -3,6 +3,7 @@
 namespace App\Livewire\Pages;
 
 use App\Enums\RolePosition;
+use App\Models\Absensi;
 use App\Utils\DateHelper;
 use App\Models\Karyawan;
 use Carbon\Carbon;
@@ -20,6 +21,7 @@ class Report extends BasePage
     public $year;
     public $roles;
     public $selectedRole = '';
+    public $now;
     public function mount() {
         $this->months = collect(range(1, 12))->mapWithKeys(function ($month) {
             return [$month => Carbon::createFromDate(null, $month, 1)->translatedFormat('F')];
@@ -33,6 +35,7 @@ class Report extends BasePage
         $this->year = $now->year;
 
         $this->roles = RolePosition::cases();
+        $this->now = $now;
     }
 
     public function updatingSelectedMonth($value) {
@@ -40,9 +43,18 @@ class Report extends BasePage
         $this->currentMonthName = DateHelper::getMonthName($value);
     }
 
-    public function updatedSelectedRole()
+    public function updated($property)
     {
-        $this->resetPage();
+        if(
+            $property === 'selectedRole' ||
+            $property === 'selectedMonth'
+        ) {
+            $this->resetPage();
+        }
+    }
+
+    public function loadAttendanceData() {
+        
     }
 
     public function render()
@@ -52,12 +64,22 @@ class Report extends BasePage
         if ($this->selectedRole) {
             $workersQuery->where('jabatan', '=', $this->selectedRole);
         }
+        $workers = $workersQuery->whereHas('absensi', function ($query) {
+            $query->whereMonth('tanggal', '=', $this->selectedMonth);
+            })->with('absensi', function($query) {
+                $query->whereMonth('tanggal', '=', $this->selectedMonth)
+                    ->where('jenisAbsen', '=', 'absenMasuk')
+                    ->orderBy('tanggal');
+            })->paginate(5);
 
-        $workers = $workersQuery->paginate(5);
+        $perPage = $workers->perPage();
+        $currentPage = $workers->currentPage();
+        $startNumber = ($currentPage - 1) * $perPage;
         return view(
             'livewire.pages.report',
             compact(
-                'workers'
+                'workers',
+                'startNumber'
             )
         );
     }
