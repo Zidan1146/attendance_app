@@ -12,6 +12,7 @@ class Dashboard extends BasePage
 {
     public $userCount;
     public $clockInCount;
+    public $clockOutCount;
     public $earlyClockOut;
     public $lateCount;
     public $absentCount;
@@ -20,32 +21,57 @@ class Dashboard extends BasePage
     public $searchTerm;
     public $jenisAbsenEnum;
     public $statusAbsenEnum;
+    public $attendanceData;
+    public $categories;
+
 
     public function mount() {
         $this->jenisAbsenEnum = TipeAbsensi::class;
         $this->statusAbsenEnum = StatusAbsen::class;
+        $this->categories = $this->statusAbsenEnum::cases();
         $this->today = Carbon::today();
         $this->dateNow = Carbon::now()->translatedFormat('l, j F Y');
         $this->userCount = Karyawan::count();
         $this->clockInCount = Karyawan::whereHas('absensi', function($query) {
-            $query->whereDate('created_at', $this->today);
-            $query->where('jenisAbsen', '=', TipeAbsensi::AbsenMasuk->value);
-            $query->where('status', '=', StatusAbsen::TepatWaktu->value);
+            $query->whereDate('tanggal', $this->today)
+                ->where('jenisAbsen', '=', TipeAbsensi::AbsenMasuk->value)
+                ->where('status', '=', StatusAbsen::TepatWaktu->value);
         })->count();
+        $this->clockOutCount = Karyawan::whereHas('absensi', function($query) {
+            $query->whereDate('tanggal', $this->today)
+                ->where('jenisAbsen', '=', TipeAbsensi::AbsenKeluar->value)
+                ->where('status', '=', StatusAbsen::TepatWaktu->value);
+        })->count();
+
         $this->lateCount = Karyawan::whereHas('absensi', function($query) {
-            $query->whereDate('created_at', $this->today);
-            $query->where('jenisAbsen', '=', TipeAbsensi::AbsenMasuk->value);
-            $query->where('status', '=', StatusAbsen::Terlambat->value);
+            $query->whereDate('tanggal', $this->today)
+                ->where('jenisAbsen', '=', TipeAbsensi::AbsenMasuk->value)
+                ->where('status', '=', StatusAbsen::Terlambat->value);
         })->count();
         $this->earlyClockOut = Karyawan::whereHas('absensi', function($query) {
-            $query->whereDate('created_at', $this->today);
-            $query->where('jenisAbsen', '=', TipeAbsensi::AbsenKeluar->value);
-            $query->where('status', '=', StatusAbsen::LebihAwal->value);
+            $query->whereDate('tanggal', $this->today)
+                ->where('jenisAbsen', '=', TipeAbsensi::AbsenKeluar->value)
+                ->where('status', '=', StatusAbsen::LebihAwal->value);
         })->count();
         $this->absentCount = Karyawan::whereDoesntHave('absensi', function($query) {
-            $query->whereDate('created_at', $this->today);
+            $query->whereDate('tanggal', $this->today);
         })->count();
+
+        $this->loadAttendanceData();
     }
+
+    public function loadAttendanceData() {
+        // Fetch and group by month + category
+        $data = Absensi::get()
+            ->groupBy(fn ($a) => Carbon::parse($a->tanggal)->format('F')) // Group by month name
+            ->map(function ($records) {
+                return $records->groupBy('status')->map->count(); // Count per category
+            });
+
+        // Merge with default months (ensuring all 12 months exist)
+        $this->attendanceData = $data->toArray();
+    }
+
     public function render()
     {
         $absensiQuery = Absensi::query();
@@ -56,7 +82,7 @@ class Dashboard extends BasePage
         }
         $todayData = $absensiQuery->where('tanggal', '=', $this->today)
             ->orderByDesc('waktu')
-                ->paginate(5);
+                ->paginate(8);
 
         $perPage = $todayData->perPage();
         $currentPage = $todayData->currentPage();

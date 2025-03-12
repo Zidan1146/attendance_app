@@ -18,7 +18,7 @@
         <div class="flex flex-col justify-center w-4/5 gap-y-3">
             <div class="shadow stats">
                 <div class="stat bg-success">
-                    <div class="stat-title">Presensi Tepat Waktu</div>
+                    <div class="stat-title">Masuk Tepat Waktu</div>
                     <div class="stat-value">{{ $clockInCount }}</div>
                     <div class="stat-desc">{{ $clockInCount }} dari {{ $userCount }} orang</div>
                 </div>
@@ -26,6 +26,11 @@
                     <div class="stat-title">Terlambat Masuk</div>
                     <div class="stat-value">{{ $lateCount }}</div>
                     <div class="stat-desc">{{ $lateCount }} dari {{ $userCount }} orang</div>
+                </div>
+                <div class="stat bg-success">
+                    <div class="stat-title">Keluar Tepat Waktu</div>
+                    <div class="stat-value">{{ $clockOutCount }}</div>
+                    <div class="stat-desc">{{ $clockOutCount }} dari {{ $userCount }} orang</div>
                 </div>
                 <div class="stat bg-warning">
                     <div class="stat-title">Pulang Lebih Awal</div>
@@ -43,13 +48,56 @@
                     <h2>Presensi per bulan</h2>
                     <div class="w-full h-full">
                         <canvas id="attendanceChart" height="256px"></canvas>
+
+                        @script
+                            <script>
+                                document.addEventListener('livewire:navigated', function () {
+                                    const ctx = document.getElementById('attendanceChart').getContext('2d');
+                                    let chart;
+
+                                    function updateChart(data) {
+                                        if (chart) chart.destroy();
+
+                                        const months = Object.keys(data);
+                                        const categories = @json($categories);
+
+                                        // Extract dataset values
+                                        const datasets = categories.map(category => ({
+                                            label: category,
+                                            data: months.map(month => data[month][category] || 0),
+                                            borderWidth: 1
+                                        }));
+
+                                        chart = new Chart(ctx, {
+                                            type: 'bar',
+                                            data: {
+                                                labels: months,
+                                                datasets: datasets
+                                            },
+                                            options: {
+                                                responsive: true,
+                                                scales: {
+                                                    x: { stacked: true },
+                                                    y: { stacked: true }
+                                                }
+                                            }
+                                        });
+                                    }
+
+                                    Livewire.hook('element.init', ({ component, el }) => {
+                                        updateChart(@json($attendanceData));
+                                    })
+                                    updateChart(@json($attendanceData));
+                                });
+                            </script>
+                        @endscript
                     </div>
                 </div>
                 <div class="w-1/2 p-2 border rounded border-primary bg-neutral">
                     <div class="flex justify-between">
                         <div class="flex flex-col w-2/3 gap-2">
                             <h2>Presensi per hari ini</h2>
-                            <a href="" class="w-3/4 btn btn-sm btn-primary">
+                            <a href="" class="w-fit btn btn-sm btn-primary">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5">
                                     <path
                                         d="M5.625 1.5c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V12.75A3.75 3.75 0 0 0 16.5 9h-1.875a1.875 1.875 0 0 1-1.875-1.875V5.25A3.75 3.75 0 0 0 9 1.5H5.625Z" />
@@ -80,20 +128,20 @@
                             <tbody>
                                 @foreach ($todayData as $absensi)
                                     @php
-                                        $jenis = match ($absensi->jenisAbsen) {
-                                                $jenisAbsenEnum::AbsenMasuk => 'Masuk',
-                                                $jenisAbsenEnum::AbsenKeluar => 'Keluar',
-                                                $jenisAbsenEnum::Lembur => $jenisAbsenEnum::Lembur,
-                                            default => '',
-                                        };
-                                        $statusStyling = match ($absensi->status) {
-                                                $statusAbsenEnum::TidakDiketahui => 'bg-error text-zinc-50',
-                                                $statusAbsenEnum::TepatWaktu => 'bg-success',
-                                                $statusAbsenEnum::Terlambat => 'bg-error text-zinc-50',
-                                                $statusAbsenEnum::LebihAwal => 'bg-warning',
-                                                $statusAbsenEnum::TidakAbsen => 'bg-error text-zinc-50',
-                                            default => ''
-                                        }
+    $jenis = match ($absensi->jenisAbsen) {
+            $jenisAbsenEnum::AbsenMasuk => 'Masuk',
+            $jenisAbsenEnum::AbsenKeluar => 'Keluar',
+            $jenisAbsenEnum::Lembur => $jenisAbsenEnum::Lembur,
+        default => '',
+    };
+    $statusStyling = match ($absensi->status) {
+            $statusAbsenEnum::TidakDiketahui => 'bg-error text-zinc-50',
+            $statusAbsenEnum::TepatWaktu => 'bg-success',
+            $statusAbsenEnum::Terlambat => 'bg-error text-zinc-50',
+            $statusAbsenEnum::LebihAwal => 'bg-warning',
+            $statusAbsenEnum::TidakAbsen => 'bg-error text-zinc-50',
+        default => ''
+    }
                                     @endphp
                                     <tr>
                                         <td>{{ $loop->iteration + $startNumber }}</td>

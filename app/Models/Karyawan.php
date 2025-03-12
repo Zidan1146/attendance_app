@@ -29,4 +29,13 @@ class Karyawan extends Authenticatable
     public function absensi() {
         return $this->hasMany(Absensi::class);
     }
+
+    public function groupedAbsensi()
+    {
+        return $this->absensi()
+            ->selectRaw('tanggal,
+                MAX(CASE WHEN jenisAbsen = "absenMasuk" THEN status END) AS absen_masuk_status,
+                MAX(CASE WHEN jenisAbsen = "absenKeluar" THEN status END) AS absen_keluar_status')
+            ->groupBy('tanggal');
+    }
 }

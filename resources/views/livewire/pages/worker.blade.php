@@ -5,18 +5,16 @@
 
     <div class="container flex flex-col items-center justify-center">
         <div class="w-full grid items-center justify-center grid-cols-[3fr_1fr] gap-4 my-4">
-            <form action="" method="GET">
-                <div class="flex w-full">
-                    <label class="flex items-center w-full gap-2 input input-bordered bg-neutral">
-                        <input type="text" name="" id="" placeholder="Search" class="grow" wire:model.live.debounce.1000ms="search">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                            stroke="currentColor" class="size-4">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-                        </svg>
-                    </label>
-                </div>
-            </form>
+            <div class="flex w-full">
+                <label class="flex items-center w-full gap-2 input input-bordered bg-neutral">
+                    <input type="text" name="" id="" placeholder="Search" class="grow" wire:model.live.debounce.1000ms="search">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor" class="size-4">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                    </svg>
+                </label>
+            </div>
             <button class="btn btn-primary">Buat Laporan</button>
         </div>
         <div class="flex justify-start w-full">
