@@ -4,9 +4,11 @@ namespace App\Livewire\Pages;
 
 use App\Enums\StatusAbsen;
 use App\Enums\TipeAbsensi;
+use App\Exports\DailyExport;
 use App\Models\Absensi;
 use App\Models\Karyawan;
 use Carbon\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
 
 class Dashboard extends BasePage
 {
@@ -23,9 +25,17 @@ class Dashboard extends BasePage
     public $statusAbsenEnum;
     public $attendanceData;
     public $categories;
-
+    public $years;
+    public $selectedYear;
 
     public function mount() {
+        parent::authCheck();
+        $this->years = Absensi::selectRaw('YEAR(tanggal) as year')
+            ->groupBy('year')
+            ->orderBy('year', 'desc')
+            ->pluck('year');
+
+        $this->selectedYear = Carbon::now()->year;
         $this->jenisAbsenEnum = TipeAbsensi::class;
         $this->statusAbsenEnum = StatusAbsen::class;
         $this->categories = $this->statusAbsenEnum::cases();
@@ -60,16 +70,23 @@ class Dashboard extends BasePage
         $this->loadAttendanceData();
     }
 
-    public function loadAttendanceData() {
-        // Fetch and group by month + category
-        $data = Absensi::get()
-            ->groupBy(fn ($a) => Carbon::parse($a->tanggal)->format('F')) // Group by month name
-            ->map(function ($records) {
-                return $records->groupBy('status')->map->count(); // Count per category
-            });
+    public function updatedSelectedYear() {
+        $this->loadAttendanceData();
+    }
 
-        // Merge with default months (ensuring all 12 months exist)
+    public function loadAttendanceData() {
+        $data = Absensi::whereYear('tanggal', '=', $this->selectedYear)
+            ->get()
+            ->groupBy(fn ($a) => Carbon::parse($a->tanggal)->format('F'))
+            ->map(fn ($records) => $records->groupBy('status')->map->count());
+
         $this->attendanceData = $data->toArray();
+        $this->dispatch('attendanceUpdated', $this->attendanceData);
+    }
+
+    public function exportXls() {
+        $now = Carbon::now()->translatedFormat('j F Y');
+        return Excel::download(new DailyExport(), "absensi_{$now}.xls");
     }
 
     public function render()
@@ -82,7 +99,7 @@ class Dashboard extends BasePage
         }
         $todayData = $absensiQuery->where('tanggal', '=', $this->today)
             ->orderByDesc('waktu')
-                ->paginate(8);
+                ->paginate(10);
 
         $perPage = $todayData->perPage();
         $currentPage = $todayData->currentPage();

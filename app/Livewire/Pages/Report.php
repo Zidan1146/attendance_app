@@ -4,12 +4,13 @@ namespace App\Livewire\Pages;
 
 use App\Enums\RolePosition;
 use App\Enums\TipeAbsensi;
+use App\Exports\KaryawanReportExport;
 use App\Models\Absensi;
 use App\Utils\DateHelper;
 use App\Models\Karyawan;
 use Carbon\Carbon;
 use Livewire\WithPagination;
-
+use Maatwebsite\Excel\Facades\Excel;
 
 class Report extends BasePage
 {
@@ -26,6 +27,7 @@ class Report extends BasePage
     public $now;
     public $searchTerm;
     public function mount() {
+        parent::authCheck();
         $this->months = collect(range(1, 12))->mapWithKeys(function ($month) {
             return [$month => Carbon::createFromDate(null, $month, 1)->translatedFormat('F')];
         });
@@ -51,6 +53,20 @@ class Report extends BasePage
         $this->currentMonthName = DateHelper::getMonthName($value);
     }
 
+    public function exportXls() {
+        $workersData = $this->getWorkers()->get();
+        $workers = $this->aggregateData($workersData);
+
+        return Excel::download(new KaryawanReportExport(
+                $workers,
+                $this->days,
+                $this->selectedMonth,
+                $this->selectedYear
+            ),
+            "absensi_{$this->now}.xlsx"
+        );
+    }
+
     public function updated($property)
     {
         if(
@@ -64,6 +80,39 @@ class Report extends BasePage
 
     public function render()
     {
+        $workers = $this->getWorkers()->paginate(5);
+
+        $perPage = $workers->perPage();
+        $currentPage = $workers->currentPage();
+        $startNumber = ($currentPage - 1) * $perPage;
+
+        $formattedWorkers = $this->aggregateData($workers);
+
+        $finalWorkers = [];
+        foreach ($formattedWorkers as $worker) {
+            $worker['absensi'] = array_values($worker['absensi']);
+            $finalWorkers[] = $worker;
+        }
+
+        // Convert it back to a paginated structure
+        $workers = new \Illuminate\Pagination\LengthAwarePaginator(
+            array_values($finalWorkers),
+            $workers->total(),
+            $perPage,
+            $currentPage,
+            ['path' => request()->url(), 'query' => request()->query()]
+        );
+
+        return view(
+            'livewire.pages.report',
+            [
+                'workers' => $workers,
+                'startNumber' => $startNumber
+            ]
+        );
+    }
+
+    private function getWorkers() {
         $workersQuery = Karyawan::query();
 
         if($this->selectedRole) {
@@ -79,21 +128,19 @@ class Report extends BasePage
             })->with('absensi', function($query) {
                 $query->whereMonth('tanggal', $this->selectedMonth)
                     ->orderBy('tanggal');
-            })->paginate(5);
+            });
 
-        $perPage = $workers->perPage();
-        $currentPage = $workers->currentPage();
-        $startNumber = ($currentPage - 1) * $perPage;
+        return $workers;
+    }
 
+    private function aggregateData($workers) {
         $formattedWorkers = [];
-
         foreach ($workers as $worker) {
             if (!isset($formattedWorkers[$worker->id])) {
                 $formattedWorkers[$worker->id] = [
                     'id' => $worker->id,
                     'nama' => $worker->nama,
-                    'jabatan' => $worker->jabatan,
-                    'absensi' => [],
+                    'jabatan' => $worker->jabatan
                 ];
             }
 
@@ -116,28 +163,6 @@ class Report extends BasePage
             }
         }
 
-        // Flatten the data to remove multi-dimensional keys
-        $finalWorkers = [];
-        foreach ($formattedWorkers as $worker) {
-            $worker['absensi'] = array_values($worker['absensi']);
-            $finalWorkers[] = $worker;
-        }
-
-        // Convert it back to a paginated structure
-        $workers = new \Illuminate\Pagination\LengthAwarePaginator(
-            array_values($finalWorkers),
-            $workers->total(),
-            $perPage,
-            $currentPage,
-            ['path' => request()->url(), 'query' => request()->query()]
-        );
-
-        return view(
-            'livewire.pages.report',
-            compact(
-                'workers',
-                'startNumber'
-            )
-        );
+        return $formattedWorkers;
     }
 }

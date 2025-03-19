@@ -5,21 +5,18 @@ namespace App\Livewire\Pages\Crud;
 use App\Enums\RolePosition;
 use App\Models\Karyawan;
 use App\Livewire\Forms\CreateWorkerForm as WorkerForm;
+use App\Livewire\Pages\BasePage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
-use Livewire\Component;
 
-class CreateWorker extends Component
+class CreateWorker extends BasePage
 {
     public WorkerForm $form;
     public $roles;
 
     public function mount() {
-        if(!Auth::check()) {
-            $this->redirectRoute('login');
-            return;
-        }
+        parent::authCheck();
         $this->roles = RolePosition::cases();
     }
 

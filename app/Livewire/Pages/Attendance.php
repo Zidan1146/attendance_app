@@ -35,6 +35,7 @@ class Attendance extends BasePage
         }
     }
     public function mount() {
+        parent::authCheck();
         $this->roles = RolePosition::cases();
         $this->attendaceTypes = TipeAbsensi::cases();
         $this->attendanceStatuses = StatusAbsen::cases();

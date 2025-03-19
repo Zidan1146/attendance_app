@@ -4,16 +4,16 @@ namespace App\Livewire\Pages\Crud;
 
 use App\Enums\RolePosition;
 use App\Livewire\Forms\EditWorkerForm as WorkerForm;
+use App\Livewire\Pages\BasePage;
 use App\Models\Karyawan;
-use Livewire\Component;
-
-class EditWorker extends Component
+class EditWorker extends BasePage
 {
     public WorkerForm $form;
     public $worker;
     public $roles;
 
     public function mount($id) {
+        parent::authCheck();
         $this->worker = Karyawan::findOrFail($id);
         $this->roles = RolePosition::cases();
         $worker = $this->worker;

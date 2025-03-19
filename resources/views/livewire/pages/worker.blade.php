@@ -4,7 +4,7 @@
     <h1 class="text-2xl">Data Karyawan</h1>
 
     <div class="container flex flex-col items-center justify-center">
-        <div class="w-full grid items-center justify-center grid-cols-[3fr_1fr] gap-4 my-4">
+        <div class="flex justify-center w-full gap-4 my-4">
             <div class="flex w-full">
                 <label class="flex items-center w-full gap-2 input input-bordered bg-neutral">
                     <input type="text" name="" id="" placeholder="Search" class="grow" wire:model.live.debounce.1000ms="search">
@@ -15,17 +15,29 @@
                     </svg>
                 </label>
             </div>
-            <button class="btn btn-primary">Buat Laporan</button>
         </div>
-        <div class="flex justify-start w-full">
-            <a href="{{ route('worker.create') }}" wire:navigate class="btn btn-primary">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-                    class="size-6">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
+        <div class="flex justify-between w-full">
+            <div class="flex items-end justify-start w-full gap-2">
+                <a href="{{ route('worker.create') }}" wire:navigate class="btn btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                        class="size-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
 
-                Tambah Karyawan Baru
-            </a>
+                    Tambah Karyawan Baru
+                </a>
+            </div>
+            <div class="">
+                <label>
+                    <span class="label">Jabatan</span>
+                    <select class="select select-bordered bg-neutral" wire:model.live="selectedRole">
+                        <option value="">Semua Jabatan</option>
+                        @foreach ($roles as $jabatan)
+                            <option value="{{ $jabatan->value }}">{{ $jabatan->name }}</option>
+                        @endforeach
+                    </select>
+                </label>
+            </div>
         </div>
 
         <div class="flex flex-col w-full gap-6 overflow-x-auto">
@@ -72,9 +84,7 @@
                                         <h3 class="text-lg font-bold">Apakah anda yakin?</h3>
                                         <p class="py-4">Tindakan ini tidak bisa dibatalkan</p>
                                         <div class="modal-action">
-                                            <form wire:submit="delete({{ $karyawan->id }})">
-                                                <button class="btn btn-error text-zinc-50">Hapus</button>
-                                            </form>
+                                            <button class="btn btn-error text-zinc-50" wire:click="delete({{ $karyawan->id }})">Hapus</button>
                                             <form method="dialog">
                                                 <button class="btn">Batal</button>
                                             </form>
@@ -87,12 +97,6 @@
                 </tbody>
             </table>
             {{ $workers->links() }}
-            {{-- <div class="join">
-                <button class="join-item btn btn-primary">1</button>
-                <button class="join-item btn btn-primary btn-active">2</button>
-                <button class="join-item btn btn-primary">3</button>
-                <button class="join-item btn btn-primary">4</button>
-            </div> --}}
         </div>
     </div>
 @endsection

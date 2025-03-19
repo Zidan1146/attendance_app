@@ -1,6 +1,8 @@
 <?php
 namespace App\Livewire\Pages;
 
+use App\Enums\RolePosition;
+use App\Enums\TipeAbsensi;
 use App\Livewire\Traits\WithRouteInfo;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Session;
@@ -19,13 +21,14 @@ abstract class BasePage extends Component {
         $this->isCollapsed = !$this->isCollapsed;
     }
 
-    public function mount()
-    {
-        $this->mountWithRouteInfo();
-    }
-
     public function logout_() {
         Auth::logout();
         $this->redirectRoute('login');
+    }
+
+    public function authCheck() {
+        if(!Auth::check()) {
+            $this->redirectRoute('login');
+        }
     }
 }
