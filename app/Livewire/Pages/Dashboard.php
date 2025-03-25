@@ -85,8 +85,8 @@ class Dashboard extends BasePage
     }
 
     public function exportXls() {
-        $now = Carbon::now()->translatedFormat('j F Y');
-        return Excel::download(new DailyExport(), "absensi_{$now}.xls");
+        $now = Carbon::now()->startOfDay();
+        return Excel::download(new DailyExport($now->copy()->format('Y-m-d H:i:s')), "absensi_{$now->translatedFormat('j F Y')}.xlsx");
     }
 
     public function render()

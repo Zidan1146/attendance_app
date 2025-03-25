@@ -3,91 +3,94 @@
 namespace App\Exports;
 
 use App\Enums\TipeAbsensi;
-use App\Models\Absensi;
 use App\Models\Karyawan;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithTitle;
 
-class DailyExport implements FromCollection, WithHeadings, ShouldAutoSize
+class DailyExport implements FromCollection, WithHeadings, ShouldAutoSize, WithTitle
 {
     /**
     * @return \Illuminate\Support\Collection
     */
+
+    private $date;
+    public function __construct(
+        $date
+    ) {
+        $this->date = $date;
+    }
+
+    public function title(): string {
+        $title = Carbon::createFromDate($this->date)->translatedFormat('j F Y');
+        return $title;
+    }
+
     public function collection()
     {
         $todayData = Karyawan::query()
-        ->whereHas('absensi', function($query) {
-            $today = Carbon::today();
-
-            $attendanceTypeOrder = [TipeAbsensi::AbsenMasuk, TipeAbsensi::AbsenKeluar, TipeAbsensi::Lembur];
-            $query->where('tanggal', '=', $today)
-                ->orderByRaw("FIELD('".implode("','", $attendanceTypeOrder)."')")
+        ->whereHas('absensi')
+        ->with('absensi', function ($query) {
+            $attendanceTypeOrder = [TipeAbsensi::AbsenMasuk->value, TipeAbsensi::AbsenKeluar->value, TipeAbsensi::Lembur->value];
+            $query->where('tanggal', "=", $this->date)
+                ->orderByRaw("FIELD(`absensis`.`jenisAbsen`,'".implode("','", $attendanceTypeOrder)."')")
                 ->get();
-            }
-        )->get();
+        })
+        ->get();
 
         $index = 0;
         $aggregatedData = [];
-        foreach($todayData as $data) {
-            $aggregatedData = [
-                "index" => $index + 1,
-                "nama" => $data->nama
-            ];
-
-            foreach($data->absensi as $todayAttendance) {
-                if(!isset($aggregatedData[$data->id]['todayStat'])) {
-                    $aggregatedData[$data->id]['todayStat'] = [
+        foreach ($todayData as $data) {
+            if (!isset($aggregatedData[$data->id])) {
+                $aggregatedData[$data->id] = [
+                    "index" => $index + 1,
+                    "nama" => $data->nama,
+                    "todayStat" => [
                         'jamMasuk' => null,
                         'jamKeluar' => null,
                         'status' => null
-                    ];
-                }
+                    ]
+                ];
+            }
 
+            $clockInStatus = null;
+            $clockOutStatus = null;
+
+            foreach ($data->absensi as $todayAttendance) {
                 if ($todayAttendance->jenisAbsen->value === TipeAbsensi::AbsenMasuk->value) {
                     $aggregatedData[$data->id]['todayStat']['jamMasuk'] = $todayAttendance->waktu;
+                    $clockInStatus = $todayAttendance->status->value;
                 } elseif ($todayAttendance->jenisAbsen->value === TipeAbsensi::AbsenKeluar->value) {
                     $aggregatedData[$data->id]['todayStat']['jamKeluar'] = $todayAttendance->waktu;
-                }
-
-                if(!isset($aggregatedData[$data->id]['todayStat']['status'])) {
-                    $aggregatedData[$data->id]['todayStat']['status'] = $todayAttendance->status->value;
-                } elseif(isset($aggregatedData[$data->id]['todayStat']['status'])) {
-                    $storedStatus = $aggregatedData[$data->id]['todayStat']['status'];
-                    $currentStatus = $todayAttendance->status->value;
-
-                    $isClockInOnTime = $storedStatus === 'tepatWaktu';
-                    $isClockOutOnTime = $currentStatus === 'tepatWaktu';
-                    $isOnTime = $isClockInOnTime && $isClockOutOnTime;
-
-                    $isClockInLate = $storedStatus === 'terlambat';
-                    $isLeaveEarly = $currentStatus === 'lebihAwal';
-
-                    $noClockIn = !isset($storedStatus);
-                    $noClockOut = !isset($currentStatus);
-
-                    $aggregatedData[$data->id]['todayStat']['status'] = match(true) {
-                        $isOnTime => 'Tepat Waktu',
-                        $isClockInLate => 'Terlambat',
-                        $isLeaveEarly => 'Pulang Lebih Awal',
-                        $noClockIn => 'Tidak Absen Masuk',
-                        $noClockOut => 'Tidak Absen Pulang'
-                    };
+                    $clockOutStatus = $todayAttendance->status->value;
                 }
             }
+
+            // Apply logic AFTER both absensi processed:
+            $aggregatedData[$data->id]['todayStat']['status'] = match (true) {
+                $clockInStatus === 'tepatWaktu' && $clockOutStatus === 'tepatWaktu' => 'Tepat Waktu',
+                $clockInStatus === 'terlambat' => 'Terlambat',
+                $clockOutStatus === 'lebihAwal' => 'Pulang Lebih Awal',
+                ($clockInStatus === null) && ($clockOutStatus === null) => 'Tidak Absen',
+                $clockInStatus === null => 'Tidak Absen Masuk',
+                $clockOutStatus === null => 'Tidak Absen Pulang',
+                default => 'Tidak Diketahui'
+            };
+
+            $index++;
         }
 
         $collectionData = [];
-        $index = 0;
         foreach($aggregatedData as $karyawan) {
             $row = [
-                $index + 1,
-                $karyawan->nama
+                $karyawan['index'],
+                $karyawan['nama']
             ];
 
             foreach($karyawan['todayStat'] as $statKey => $statValue) {
-                $row[]  = $statValue;
+                $row[]  = $statValue ?: '-';
             }
             $collectionData[] = $row;
         }

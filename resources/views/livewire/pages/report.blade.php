@@ -54,7 +54,7 @@
                                     d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
                             </svg>
                         </label>
-                        <button class="btn btn-primary" wire:click="exportXls">
+                        <button class="btn btn-primary" onclick="export_modal.showModal()">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="m-1 size-6">
                                 <path
                                     d="M5.625 1.5c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V12.75A3.75 3.75 0 0 0 16.5 9h-1.875a1.875 1.875 0 0 1-1.875-1.875V5.25A3.75 3.75 0 0 0 9 1.5H5.625Z" />
@@ -62,8 +62,98 @@
                                     d="M12.971 1.816A5.23 5.23 0 0 1 14.25 5.25v1.875c0 .207.168.375.375.375H16.5a5.23 5.23 0 0 1 3.434 1.279 9.768 9.768 0 0 0-6.963-6.963Z" />
                             </svg>
 
-                            xlsx
+                            Export
                         </button>
+                        <dialog wire:ignore.self id="export_modal" class="modal">
+                            <div class="modal-box">
+                                <h3 class="text-lg font-bold">Export sebagai xlsx</h3>
+                                <div class="flex flex-col gap-4">
+                                    <div class="flex flex-col">
+                                        <label for="" class="label">Jenis Periode</label>
+                                        <select name="" id="" wire:model.live="reportPeriodType" class="join-item select bg-neutral">
+                                            <option value="monthly">Bulanan</option>
+                                            <option value="daily">Harian</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="flex justify-between">
+                                        <div class="">
+                                            <label for="" class="label">Periode</label>
+                                            <div class="join">
+                                                @if ($reportPeriodType === 'monthly')
+                                                    <select name="" id="" class="join-item select bg-neutral" wire:model.live="selectedExportStartMonth" wire:key="start-month">
+                                                        @foreach ($months as $monthNumber => $monthName)
+                                                            <option value="{{ $monthNumber }}">{{ $monthName }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                    <select name="" id="" class="join-item select bg-neutral" wire:model.live="selectedExportEndMonth" wire:key="start-end">
+                                                        @foreach ($months as $monthNumber => $monthName)
+                                                            <option value="{{ $monthNumber }}">{{ $monthName }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                @else
+                                                    <select name="" id="" class="join-item select bg-neutral" wire:model.live="selectedStartDate" wire:key="start-date">
+                                                        <option value="" disabled>- Dari Tanggal -</option>
+                                                        @foreach ($availableDates as $date)
+                                                            <option value="{{ $date }}">{{ $date->translatedFormat('j F Y') }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                    <select name="" id="" class="join-item select bg-neutral" wire:model.live="selectedEndDate" wire:key="end-date">
+                                                        <option value="" disabled>- Sampai Tanggal -</option>
+                                                        @foreach ($availableDates as $date)
+                                                            <option value="{{ $date }}">{{ $date->translatedFormat('j F Y') }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        @if ($reportPeriodType === 'monthly')
+                                            <div>
+                                                <label for="" class="label">Tahun</label>
+                                                <select name="" id="" class="join-item select bg-neutral" wire:model="selectedExportYear">
+                                                    @foreach ($years as $year)
+                                                        <option value="{{ $year }}" {{ $year === $selectedYear ? 'selected' : '' }}>{{ $year }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        @endif
+                                        <div>
+                                            <label for="" class="label">Jabatan</label>
+                                            <select name="" id="" class="join-item select bg-neutral" wire:model="selectedExportRole">
+                                                <option value="">Semua</option>
+                                                @foreach ($roles as $jabatan)
+                                                    <option value="{{ $jabatan->value }}">{{ $jabatan->name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                                    @if ($exportErrorType > 0)
+                                        <div role="alert" class="text-sm alert alert-warning">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 stroke-current shrink-0" fill="none" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                            </svg>
+                                            <span>{{
+                                                match($exportErrorType) {
+                                                    1 => 'Pilihan tidak boleh kosong!',
+                                                    2 => 'Pilihan tidak valid!',
+                                                    3 => 'Pilihan range melebihi batas yang dibutuhkan',
+                                                    default => ''
+                                                }
+                                            }}</span>
+                                        </div>
+                                    @endif
+                                </div>
+                                <div class="modal-action">
+                                    <button class="btn btn-primary" wire:click="exportXls"
+                                        @disabled($exportErrorType > 0)>
+                                        Export
+                                    </button>
+                                    <form method="dialog">
+                                        <button class="btn">Close</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </dialog>
                     </div>
                 </div>
 
@@ -73,7 +163,7 @@
                             <th rowspan="2" class="border border-gray-300">No</th>
                             <th rowspan="2" class="border border-gray-300">Nama</th>
                             <th rowspan="2" class="border border-gray-300">Jabatan</th>
-                            <th colspan="31" class="border border-gray-300">{{ "$currentMonthName $year" }}</th>
+                            <th colspan="31" class="border border-gray-300">{{ "$currentMonthName $selectedYear" }}</th>
                         </tr>
                         <tr class="text-gray-600 bg-gray-100">
                             @foreach ($days as $day)

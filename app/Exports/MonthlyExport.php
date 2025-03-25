@@ -14,7 +14,7 @@ use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class KaryawanReportExport implements FromCollection, ShouldAutoSize, WithHeadings, WithStyles, WithTitle, WithEvents
+class MonthlyExport implements FromCollection, ShouldAutoSize, WithHeadings, WithStyles, WithTitle, WithEvents
 {
     /**
     * @return \Illuminate\Support\Collection
