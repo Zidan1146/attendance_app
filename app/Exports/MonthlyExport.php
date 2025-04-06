@@ -209,28 +209,28 @@ class MonthlyExport implements FromCollection, ShouldAutoSize, WithHeadings, Wit
 
     private function styleAttendanceTable(Worksheet $sheet, string $recordRange, int $colGap = 4, int $rowGap = 2) {
         foreach ($sheet->rangeToArray($recordRange) as $rowIndex => $row) {
-                foreach ($row as $colIndex => $cellValue) {
-                    $columnLetter = Coordinate::stringFromColumnIndex($colIndex + $colGap);
-                    $rowNumber = $rowIndex + $rowGap;
-                    $cellCoordinate = "{$columnLetter}{$rowNumber}";
+            foreach ($row as $colIndex => $cellValue) {
+                $columnLetter = Coordinate::stringFromColumnIndex($colIndex + $colGap);
+                $rowNumber = $rowIndex + $rowGap;
+                $cellCoordinate = "{$columnLetter}{$rowNumber}";
 
-                    $styleArray = match($cellValue) {
-                        'A' => [
-                            'font' => ['color' => ['rgb' => 'FFFFFF']],
-                            'fill' => ['fillType' => 'solid', 'startColor' => ['rgb' => 'DC2626']], // red bg
-                        ],
-                        'V' => [
-                            'fill' => ['fillType' => 'solid', 'startColor' => ['rgb' => '16A34A']], // green bg
-                            'font' => ['color' => ['rgb' => 'FFFFFF']],
-                        ],
-                        'TL', 'TP', 'PW', 'TM' => [
-                            'fill' => ['fillType' => 'solid', 'startColor' => ['rgb' => 'FACC15']], // yellow bg
-                        ],
-                        default => [],
-                    };
+                $styleArray = match($cellValue) {
+                    'A' => [
+                        'font' => ['color' => ['rgb' => 'FFFFFF']],
+                        'fill' => ['fillType' => 'solid', 'startColor' => ['rgb' => 'DC2626']], // red bg
+                    ],
+                    'V' => [
+                        'fill' => ['fillType' => 'solid', 'startColor' => ['rgb' => '16A34A']], // green bg
+                        'font' => ['color' => ['rgb' => 'FFFFFF']],
+                    ],
+                    'TL', 'TP', 'PW', 'TM' => [
+                        'fill' => ['fillType' => 'solid', 'startColor' => ['rgb' => 'FACC15']], // yellow bg
+                    ],
+                    default => [],
+                };
 
-                    $sheet->getStyle($cellCoordinate)->applyFromArray($styleArray);
-                }
+                $sheet->getStyle($cellCoordinate)->applyFromArray($styleArray);
             }
+        }
     }
 }

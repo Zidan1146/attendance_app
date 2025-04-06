@@ -66,7 +66,14 @@
                         </button>
                         <dialog wire:ignore.self id="export_modal" class="modal">
                             <div class="modal-box">
-                                <h3 class="text-lg font-bold">Export sebagai xlsx</h3>
+                                <h3 class="text-lg font-bold">
+                                    Export sebagai
+                                    <select name="" id="" class="select select-sm bg-neutral" wire:model.live="reportFileType">
+                                        <option value="xlsx">xlsx</option>
+                                        <option value="pdf">pdf</option>
+                                    </select>
+                                    {{ $reportFileType }}
+                                </h3>
                                 <div class="flex flex-col gap-4">
                                     <div class="flex flex-col">
                                         <label for="" class="label">Jenis Periode</label>
@@ -144,10 +151,16 @@
                                     @endif
                                 </div>
                                 <div class="modal-action">
-                                    <button class="btn btn-primary" wire:click="exportXls"
-                                        @disabled($exportErrorType > 0)>
-                                        Export
-                                    </button>
+                                    <form wire:submit="export">
+                                        <button class="btn btn-primary"
+                                            @disabled($exportErrorType > 0)>
+                                            <div wire:loading wire:target="export">
+                                                <span class="loading loading-spinner loading-md"></span>
+                                            </div>
+
+                                            Export
+                                        </button>
+                                    </form>
                                     <form method="dialog">
                                         <button class="btn">Close</button>
                                     </form>
@@ -178,7 +191,7 @@
                                 <td class="p-2 border border-gray-300">{{ $karyawan['nama'] }}</td>
                                 <td class="p-2 border border-gray-300">{{ $karyawan['jabatan']->name }}</td>
                                 @php
-        $previousValue = 0;
+                                    $previousValue = 0;
                                 @endphp
                                 @foreach ($karyawan['absensi'] as $absensi)
                                     @foreach ($days as $day)
@@ -187,40 +200,40 @@
                                         @break((int) $now->format('j') < $day['day_number'] && (int) $now->month <= $selectedMonth)
 
                                         @php
-                $isDateMatch = (int) $absensi['tanggal'] === $day['day_number'];
-                $isClockInOnTime = $absensi['absen_masuk_status'] === 'tepatWaktu';
-                $isClockOutOnTime = $absensi['absen_keluar_status'] === 'tepatWaktu';
-                $isOnTime = $isClockInOnTime && $isClockOutOnTime && $isDateMatch;
+                                            $isDateMatch = (int) $absensi['tanggal'] === $day['day_number'];
+                                            $isClockInOnTime = $absensi['absen_masuk_status'] === 'tepatWaktu';
+                                            $isClockOutOnTime = $absensi['absen_keluar_status'] === 'tepatWaktu';
+                                            $isOnTime = $isClockInOnTime && $isClockOutOnTime && $isDateMatch;
 
-                $isClockInLate = ($absensi['absen_masuk_status'] === 'terlambat') && $isDateMatch;
-                $isLeaveEarly = ($absensi['absen_keluar_status'] === 'lebihAwal') && $isDateMatch;
+                                            $isClockInLate = ($absensi['absen_masuk_status'] === 'terlambat') && $isDateMatch;
+                                            $isLeaveEarly = ($absensi['absen_keluar_status'] === 'lebihAwal') && $isDateMatch;
 
-                $noClockIn = !isset($absensi['absen_masuk_status']) && $isDateMatch;
-                $noClockOut = !isset($absensi['absen_keluar_status']) && $isDateMatch;
-                $isWeekend = $day['is_weekend'];
-                $status = match (true) {
-                    $isWeekend => '',
-                    $noClockOut => 'tp',
-                    $noClockIn => 'tm',
-                    $isClockInLate => 'tl',
-                    $isLeaveEarly => 'pw',
-                    $isOnTime => 'v',
-                    default => 'a'
-                };
-                $statusStyling = match ($status) {
-                    'a' => 'text-zinc-50 bg-error',
-                    'tp' => 'bg-warning',
-                    'v' => 'bg-success',
-                    'tl' => 'bg-warning',
-                    'tm' => 'bg-warning',
-                    'pw' => 'bg-warning',
-                    default => ''
-                }
+                                            $noClockIn = !isset($absensi['absen_masuk_status']) && $isDateMatch;
+                                            $noClockOut = !isset($absensi['absen_keluar_status']) && $isDateMatch;
+                                            $isWeekend = $day['is_weekend'];
+                                            $status = match (true) {
+                                                $isWeekend => '',
+                                                $noClockOut => 'tp',
+                                                $noClockIn => 'tm',
+                                                $isClockInLate => 'tl',
+                                                $isLeaveEarly => 'pw',
+                                                $isOnTime => 'v',
+                                                default => 'a'
+                                            };
+                                            $statusStyling = match ($status) {
+                                                'a' => 'text-zinc-50 bg-error',
+                                                'tp' => 'bg-warning',
+                                                'v' => 'bg-success',
+                                                'tl' => 'bg-warning',
+                                                'tm' => 'bg-warning',
+                                                'pw' => 'bg-warning',
+                                                default => ''
+                                            }
                                         @endphp
 
                                         @if ($loop->parent->last)
                                             @php
-                    $previousValue = 0;
+                                                $previousValue = 0;
                                             @endphp
                                         @endif
 
@@ -232,7 +245,7 @@
 
                                         @if ($isDateMatch)
                                             @php
-                    $previousValue = $day['day_number'];
+                                                $previousValue = $day['day_number'];
                                             @endphp
                                             @break
                                         @endif

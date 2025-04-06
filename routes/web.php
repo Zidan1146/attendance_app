@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Pdf\DownloadDailyReports;
+use App\Http\Controllers\Pdf\DownloadMonthlyReports;
 use App\Livewire\Init;
 use App\Livewire\Pages\Attendance;
 use App\Livewire\Pages\Auth\Login;
@@ -19,3 +21,6 @@ Route::get('/worker/create', CreateWorker::class)->name('worker.create');
 Route::get('/worker/edit/{id}', EditWorker::class)->name('worker.edit');
 Route::get('/report', Report::class)->name('report');
 Route::get('/login', Login::class)->name('login');
+
+Route::get('/pdf/download/monthly', DownloadMonthlyReports::class)->name('pdf.download.monthly');
+Route::get('/pdf/download/daily', DownloadDailyReports::class)->name('pdf.download.daily');

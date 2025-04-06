@@ -5,13 +5,12 @@ namespace App\Livewire\Pages;
 use App\Enums\ExportErrorType;
 use App\Enums\RolePosition;
 use App\Enums\TipeAbsensi;
-use App\Exports\DailyExport;
-use App\Exports\MonthlyExport;
 use App\Exports\MultiDailyExport;
 use App\Exports\MultiMonthlyExport;
 use App\Models\Absensi;
 use App\Utils\DateHelper;
 use App\Models\Karyawan;
+use App\Utils\MonthlyAttendanceHelper;
 use Carbon\Carbon;
 use Livewire\WithPagination;
 use Maatwebsite\Excel\Facades\Excel;
@@ -40,6 +39,7 @@ class Report extends BasePage
     public $selectedEndDate;
     public $dateDiff;
     public $exportErrorType;
+    public $reportFileType;
 
     public function mount() {
         parent::authCheck();
@@ -74,6 +74,8 @@ class Report extends BasePage
 
         $this->availableDates = Absensi::distinct()->orderBy('tanggal')->pluck('tanggal');
         $this->exportErrorType = 0;
+
+        $this->reportFileType = 'xlsx';
     }
 
     public function calculateDateDiff()
@@ -93,13 +95,12 @@ class Report extends BasePage
     }
 
     public function exportMonthlyData() {
-        $workersData = $this->getWorkers(
+        $workers = MonthlyAttendanceHelper::getData(
             $this->selectedExportRole,
             $this->selectedExportYear,
             $this->selectedExportStartMonth,
             $this->selectedExportEndMonth
-        )->get();
-        $workers = $this->aggregateData($workersData);
+        );
         $startMonthName = DateHelper::getMonthName($this->selectedExportStartMonth);
         $endMonthName = DateHelper::getMonthName($this->selectedExportEndMonth);
 
@@ -123,18 +124,46 @@ class Report extends BasePage
             "absensi_{$this->selectedStartDate}_{$this->selectedEndDate}.xlsx"
         );
     }
-    public function exportXls() {
-        if($this->reportPeriodType === 'monthly') {
-            return $this->exportMonthlyData();
+    public function export() {
+        if($this->reportFileType === 'pdf') {
+            if($this->reportPeriodType === 'monthly') {
+                $workers = MonthlyAttendanceHelper::getData(
+                    null,
+                    $this->selectedExportYear,
+                    $this->selectedMonth
+                );
+                $requestData = [
+                    'days' => $this->days,
+                    'workers' => $workers,
+                    'now' => $this->now->toDateTimeString(),
+                    'year' => $this->selectedExportYear,
+                    'startMonth' => $this->selectedExportStartMonth,
+                    'endMonth' => $this->selectedExportEndMonth
+                ];
+                $this->redirectRoute('pdf.download.monthly', $requestData);
+            }
+            else if($this->reportPeriodType === 'daily') {
+                $requestData = [
+                    'startDate' => $this->selectedStartDate,
+                    'endDate' => $this->selectedEndDate
+                ];
+                $this->redirectRoute('pdf.download.daily', $requestData);
+            }
         }
-        if($this->reportPeriodType === 'daily') {
-            return $this->exportDailyData();
+
+        else if($this->reportFileType === 'xlsx') {
+            if($this->reportPeriodType === 'monthly') {
+                return $this->exportMonthlyData();
+            }
+            if($this->reportPeriodType === 'daily') {
+                return $this->exportDailyData();
+            }
         }
     }
 
     public function updated($property)
     {
-        if(in_array($property, ['selectedStartDate', 'selectedEndDate', 'selectedYear', 'selectedExportStartMonth', 'selectedExportEndMonth', 'reportPeriodType'])) {
+        if(in_array($property, ['selectedStartDate', 'selectedEndDate', 'selectedYear', 'selectedExportStartMonth', 'selectedExportEndMonth', 'reportPeriodType', 'reportFileType'])) {
             $this->resetPage();
             $this->calculateDateDiff();
             $this->exportErrorType = $this->validateExport();
@@ -173,32 +202,32 @@ class Report extends BasePage
 
     public function render()
     {
-        $workers = $this->getWorkers(
+        $workers = MonthlyAttendanceHelper::getData(
             $this->selectedRole,
             $this->selectedYear,
-            $this->selectedMonth
-        )->paginate(5);
-
-        $perPage = $workers->perPage();
-        $currentPage = $workers->currentPage();
-        $startNumber = ($currentPage - 1) * $perPage;
-
-        $formattedWorkers = $this->aggregateData($workers);
+            $this->selectedMonth,
+            null,
+            5
+        );
 
         $finalWorkers = [];
-        foreach ($formattedWorkers as $worker) {
+        foreach ($workers['resultData'] as $worker) {
             $worker['absensi'] = array_values($worker['absensi']);
             $finalWorkers[] = $worker;
         }
 
-        // Convert it back to a paginated structure
+        $perPage = $workers['rawData']->perPage();
+        $currentPage = $workers['rawData']->currentPage();
+        $startNumber = ($currentPage - 1) * $perPage;
+
         $workers = new \Illuminate\Pagination\LengthAwarePaginator(
             array_values($finalWorkers),
-            $workers->total(),
+            $workers['rawData']->total(),
             $perPage,
             $currentPage,
             ['path' => request()->url(), 'query' => request()->query()]
         );
+
 
         return view(
             'livewire.pages.report',
@@ -207,78 +236,5 @@ class Report extends BasePage
                 'startNumber' => $startNumber
             ]
         );
-    }
-
-    private function getWorkers(
-        $role,
-        $year,
-        $startMonth,
-        $endMonth = null
-    ) {
-        $workersQuery = Karyawan::query();
-
-        if($role) {
-            $workersQuery->where('jabatan', '=', $role);
-        }
-
-        $workers = $workersQuery->whereHas('absensi', function ($query) use ($year, $startMonth, $endMonth) {
-                $absensiQuery = $query->whereYear('tanggal', '=', $year);
-                if(empty($endMonth)) {
-                    $absensiQuery->whereMonth('tanggal', '=', $startMonth);
-                }
-                else {
-                    $startDate = Carbon::createFromFormat('Y-n', "{$year}-{$startMonth}")->startOfMonth();
-                    $endDate = Carbon::createFromFormat('Y-n', "{$year}-{$endMonth}")->endOfMonth();
-                    $absensiQuery->whereBetween('tanggal', [$startDate, $endDate]);
-                }
-            })->with('absensi', function($query) use ($year, $startMonth, $endMonth) {
-                if(empty($endMonth)) {
-                    $query->whereMonth('tanggal', '=', $startMonth);
-                }
-                else {
-                    $startDate = Carbon::createFromFormat('Y-n', "{$year}-{$startMonth}")->startOfMonth();
-                    $endDate = Carbon::createFromFormat('Y-n', "{$year}-{$endMonth}")->endOfMonth();
-                    $query->whereBetween('tanggal', [$startDate, $endDate]);
-                }
-
-                $query->orderBy('tanggal');
-            });
-
-        return $workers;
-    }
-
-    private function aggregateData($workers) {
-        $formattedWorkers = [];
-        foreach ($workers as $worker) {
-            if (!isset($formattedWorkers[$worker->id])) {
-                $formattedWorkers[$worker->id] = [
-                    'id' => $worker->id,
-                    'nama' => $worker->nama,
-                    'jabatan' => $worker->jabatan,
-                    'absensi' => []
-                ];
-            }
-
-            foreach ($worker->absensi as $absensi) {
-                $date = $absensi->tanggal->format('j');
-                $month = $absensi->tanggal->format('m');
-
-                if (!isset($formattedWorkers[$worker->id]['absensi']["{$month}_{$date}"])) {
-                    $formattedWorkers[$worker->id]['absensi']["{$month}_{$date}"] = [
-                        'tanggal' => $date,
-                        'absen_masuk_status' => null,
-                        'absen_keluar_status' => null,
-                    ];
-                }
-
-                if ($absensi->jenisAbsen->value === TipeAbsensi::AbsenMasuk->value) {
-                    $formattedWorkers[$worker->id]['absensi']["{$month}_{$date}"]['absen_masuk_status'] = $absensi->status->value;
-                } elseif ($absensi->jenisAbsen->value === TipeAbsensi::AbsenKeluar->value) {
-                    $formattedWorkers[$worker->id]['absensi']["{$month}_{$date}"]['absen_keluar_status'] = $absensi->status->value;
-                }
-            }
-        }
-
-        return $formattedWorkers;
     }
 }

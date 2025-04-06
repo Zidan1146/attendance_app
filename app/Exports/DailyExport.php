@@ -2,15 +2,20 @@
 
 namespace App\Exports;
 
-use App\Enums\TipeAbsensi;
+use App\Utils\DailyAttendanceHelper;
 use App\Models\Karyawan;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
+use Maatwebsite\Excel\Events\AfterSheet;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class DailyExport implements FromCollection, WithHeadings, ShouldAutoSize, WithTitle
+class DailyExport implements FromCollection, WithHeadings, ShouldAutoSize, WithTitle, WithStyles, WithEvents
 {
     /**
     * @return \Illuminate\Support\Collection
@@ -30,57 +35,7 @@ class DailyExport implements FromCollection, WithHeadings, ShouldAutoSize, WithT
 
     public function collection()
     {
-        $todayData = Karyawan::query()
-        ->whereHas('absensi')
-        ->with('absensi', function ($query) {
-            $attendanceTypeOrder = [TipeAbsensi::AbsenMasuk->value, TipeAbsensi::AbsenKeluar->value, TipeAbsensi::Lembur->value];
-            $query->where('tanggal', "=", $this->date)
-                ->orderByRaw("FIELD(`absensis`.`jenisAbsen`,'".implode("','", $attendanceTypeOrder)."')")
-                ->get();
-        })
-        ->get();
-
-        $index = 0;
-        $aggregatedData = [];
-        foreach ($todayData as $data) {
-            if (!isset($aggregatedData[$data->id])) {
-                $aggregatedData[$data->id] = [
-                    "index" => $index + 1,
-                    "nama" => $data->nama,
-                    "todayStat" => [
-                        'jamMasuk' => null,
-                        'jamKeluar' => null,
-                        'status' => null
-                    ]
-                ];
-            }
-
-            $clockInStatus = null;
-            $clockOutStatus = null;
-
-            foreach ($data->absensi as $todayAttendance) {
-                if ($todayAttendance->jenisAbsen->value === TipeAbsensi::AbsenMasuk->value) {
-                    $aggregatedData[$data->id]['todayStat']['jamMasuk'] = $todayAttendance->waktu;
-                    $clockInStatus = $todayAttendance->status->value;
-                } elseif ($todayAttendance->jenisAbsen->value === TipeAbsensi::AbsenKeluar->value) {
-                    $aggregatedData[$data->id]['todayStat']['jamKeluar'] = $todayAttendance->waktu;
-                    $clockOutStatus = $todayAttendance->status->value;
-                }
-            }
-
-            // Apply logic AFTER both absensi processed:
-            $aggregatedData[$data->id]['todayStat']['status'] = match (true) {
-                $clockInStatus === 'tepatWaktu' && $clockOutStatus === 'tepatWaktu' => 'Tepat Waktu',
-                $clockInStatus === 'terlambat' => 'Terlambat',
-                $clockOutStatus === 'lebihAwal' => 'Pulang Lebih Awal',
-                ($clockInStatus === null) && ($clockOutStatus === null) => 'Tidak Absen',
-                $clockInStatus === null => 'Tidak Absen Masuk',
-                $clockOutStatus === null => 'Tidak Absen Pulang',
-                default => 'Tidak Diketahui'
-            };
-
-            $index++;
-        }
+        $aggregatedData = DailyAttendanceHelper::getAttendanceData($this->date);
 
         $collectionData = [];
         foreach($aggregatedData as $karyawan) {
@@ -89,7 +44,7 @@ class DailyExport implements FromCollection, WithHeadings, ShouldAutoSize, WithT
                 $karyawan['nama']
             ];
 
-            foreach($karyawan['todayStat'] as $statKey => $statValue) {
+            foreach($karyawan['todayStat'] as $_ => $statValue) {
                 $row[]  = $statValue ?: '-';
             }
             $collectionData[] = $row;
@@ -105,6 +60,68 @@ class DailyExport implements FromCollection, WithHeadings, ShouldAutoSize, WithT
             'Jam Masuk',
             'Jam Keluar',
             'Status'
+        ];
+    }
+
+    public function styles(Worksheet $sheet)
+    {
+        $sheet->getStyle('A1:E1')->applyFromArray([
+            'font' => ['bold' => true, 'size' => 12],
+            'alignment' => ['horizontal' => 'center'],
+            'fill' => ['fillType' => 'solid', 'startColor' => ['argb' => 'FFEEEEEE']]
+        ]);
+
+        $workerData = Karyawan::with('absensi')->get();
+        $workersCount = count($workerData);
+        $tableHeight = $workersCount + 1;
+
+        $sheet->getStyle("A1:E{$tableHeight}")->applyFromArray([
+            'borders' => [
+                'allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN],
+            ]
+        ]);
+
+        $sheet->getStyle("A2:E{$tableHeight}")->applyFromArray([
+            'alignment' => ['horizontal' => 'left'],
+        ]);
+    }
+
+    public function registerEvents(): array
+    {
+        return [
+            AfterSheet::class => function(AfterSheet $event) {
+                $sheet = $event->sheet->getDelegate();
+
+                $workerData = Karyawan::with('absensi')->get();
+                $workersCount = count($workerData);
+                $tableHeight = $workersCount + 1;
+
+                $range = "A1:E{$tableHeight}";
+                foreach ($sheet->rangeToArray($range) as $rowIndex => $row) {
+                    foreach ($row as $colIndex => $cellValue) {
+                        $columnLetter = Coordinate::stringFromColumnIndex($colIndex + 1);
+                        $rowNumber = $rowIndex + 1;
+                        $cellCoordinate = "{$columnLetter}{$rowNumber}";
+
+                        $styleArray = match($cellValue) {
+                            'Tidak Absen' => [
+                                'font' => ['color' => ['rgb' => 'FFFFFF']],
+                                'fill' => ['fillType' => 'solid', 'startColor' => ['rgb' => 'DC2626']], // red bg
+                            ],
+                            'Tepat Waktu' => [
+                                'fill' => ['fillType' => 'solid', 'startColor' => ['rgb' => '16A34A']], // green bg
+                                'font' => ['color' => ['rgb' => 'FFFFFF']],
+                            ],
+                            'Pulang Lebih Awal', 'Tidak Absen Masuk', 'Tidak Absen Pulang', 'Terlambat' => [
+                                'fill' => ['fillType' => 'solid', 'startColor' => ['rgb' => 'FACC15']], // yellow bg
+                            ],
+                            default => [],
+                        };
+
+                        $sheet->getStyle($cellCoordinate)->applyFromArray($styleArray);
+                    }
+                }
+            }
         ];
     }
 }
