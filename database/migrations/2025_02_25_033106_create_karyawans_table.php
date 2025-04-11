@@ -7,9 +7,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         try {
@@ -25,6 +22,8 @@ return new class extends Migration
                 $table->string('alamat');
                 $table->string('noTelepon');
                 $table->enum('jabatan', $allowedJabatan);
+                $table->string('username');
+                $table->string('password');
 
                 $table->timestamps();
             });
@@ -34,9 +33,6 @@ return new class extends Migration
         }
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('karyawans');

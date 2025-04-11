@@ -16,7 +16,6 @@ class DownloadMonthlyReports extends Controller
     {
         $now = $request->input('now');
         $carbonNow = \Carbon\Carbon::parse($now);
-
         return Pdf()
             ->view('pdf.report.monthly.index', [
                 'request' => $request->all(),

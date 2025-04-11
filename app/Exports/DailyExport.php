@@ -44,7 +44,10 @@ class DailyExport implements FromCollection, WithHeadings, ShouldAutoSize, WithT
                 $karyawan['nama']
             ];
 
-            foreach($karyawan['todayStat'] as $_ => $statValue) {
+            foreach($karyawan['stat'] as $key => $statValue) {
+                if($key === 'tanggal') {
+                    continue;
+                }
                 $row[]  = $statValue ?: '-';
             }
             $collectionData[] = $row;

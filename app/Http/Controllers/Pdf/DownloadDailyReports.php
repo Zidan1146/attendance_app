@@ -15,11 +15,17 @@ class DownloadDailyReports extends Controller
 {
     public function __invoke(Request $request)
     {
-        $selectedDate = $request->input('startDate');
-        $workers = DailyAttendanceHelper::getAttendanceData($selectedDate);
+        $startDate = $request->input('startDate');
+        $endDate = $request->input('endDate');
+        $workers = DailyAttendanceHelper::getAttendanceData($startDate, $endDate);
+        dd($workers);
 
         return Pdf()
-            ->view('pdf.report.daily.index', compact('workers'))
+            ->view('pdf.report.daily.index', [
+                'workers' => $workers,
+                'startDate' => $startDate,
+                'endDate' => $endDate
+            ])
             ->format(Format::A4)
             ->orientation(Orientation::Landscape)
             ->margins(0.25,0.25,0.25,0.25, Unit::Centimeter)

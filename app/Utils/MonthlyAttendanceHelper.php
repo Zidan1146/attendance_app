@@ -5,8 +5,6 @@ namespace App\Utils;
 use App\Enums\TipeAbsensi;
 use App\Models\Karyawan;
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Pagination\LengthAwarePaginator;
 
 class MonthlyAttendanceHelper
 {

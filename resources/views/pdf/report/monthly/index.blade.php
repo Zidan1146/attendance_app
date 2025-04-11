@@ -26,11 +26,18 @@
                                 @php
                                     $previousValue = 0;
                                 @endphp
-                                @foreach ($karyawan['absensi'] as $absensi)
-                                    @foreach ($request['days'] as $day)
+                                @foreach ($karyawan['absensi'] as $key => $absensi)
+                                    @php
+                                        $currentAttendanceMonth = explode('_', $key)[0];
+                                    @endphp
 
+                                    @foreach ($request['days'] as $day)
                                         @continue($previousValue >= $day['day_number'])
-                                        @break((int) $now->format('j') < $day['day_number'] && (int) $now->month <= $month)
+                                        @break(
+                                            ((int) $now->format('j') < $day['day_number'] &&
+                                            (int) $now->month <= (int) $month) ||
+                                            (int) $month !== (int) $currentAttendanceMonth
+                                        )
 
                                         @php
                                             $clockInStatus = isset($absensi['absen_masuk_status']) ? $absensi['absen_masuk_status'] : 'none';

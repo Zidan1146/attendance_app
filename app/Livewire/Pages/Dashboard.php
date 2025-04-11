@@ -35,12 +35,14 @@ class Dashboard extends BasePage
             ->orderBy('year', 'desc')
             ->pluck('year');
 
-        $this->selectedYear = Carbon::now()->year;
+        $now = Carbon::now();
+
+        $this->selectedYear = $now->year;
         $this->jenisAbsenEnum = TipeAbsensi::class;
         $this->statusAbsenEnum = StatusAbsen::class;
         $this->categories = $this->statusAbsenEnum::cases();
         $this->today = Carbon::today();
-        $this->dateNow = Carbon::now()->translatedFormat('l, j F Y');
+        $this->dateNow = $now->translatedFormat('l, j F Y');
         $this->userCount = Karyawan::count();
         $this->clockInCount = Karyawan::whereHas('absensi', function($query) {
             $query->whereDate('tanggal', $this->today)

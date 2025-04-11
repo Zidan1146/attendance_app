@@ -124,6 +124,7 @@ class Report extends BasePage
             "absensi_{$this->selectedStartDate}_{$this->selectedEndDate}.xlsx"
         );
     }
+
     public function export() {
         if($this->reportFileType === 'pdf') {
             if($this->reportPeriodType === 'monthly') {

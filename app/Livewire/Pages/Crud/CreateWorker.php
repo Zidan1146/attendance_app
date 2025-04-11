@@ -6,7 +6,6 @@ use App\Enums\RolePosition;
 use App\Models\Karyawan;
 use App\Livewire\Forms\CreateWorkerForm as WorkerForm;
 use App\Livewire\Pages\BasePage;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
