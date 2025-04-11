@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Pdf;
 
 use App\Http\Controllers\Controller;
+use App\Utils\MonthlyAttendanceHelper;
 use Illuminate\Http\Request;
 use Spatie\LaravelPdf\Enums\Format;
 use Spatie\LaravelPdf\Enums\Orientation;
@@ -16,10 +17,18 @@ class DownloadMonthlyReports extends Controller
     {
         $now = $request->input('now');
         $carbonNow = \Carbon\Carbon::parse($now);
+        $workers = MonthlyAttendanceHelper::getData(
+            $request->get('role'),
+            $request->get('year'),
+            $request->get('startMonth'),
+            $request->get('endMonth'),
+        );
+
         return Pdf()
             ->view('pdf.report.monthly.index', [
                 'request' => $request->all(),
                 'now' => $carbonNow,
+                'workers' => $workers
             ])
             ->format(Format::A4)
             ->orientation(Orientation::Landscape)

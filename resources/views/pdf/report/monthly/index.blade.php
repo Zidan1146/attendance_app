@@ -19,7 +19,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($request['workers'] as $karyawan)
+                        @foreach ($workers as $karyawan)
                             <tr>
                                 <td style="padding: 8px; border: 1px solid #000000;">{{ $loop->iteration }}</td>
                                 <td style="padding: 8px; border: 1px solid #000000;">{{ $karyawan['nama'] }}</td>

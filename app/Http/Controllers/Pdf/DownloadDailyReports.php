@@ -18,7 +18,6 @@ class DownloadDailyReports extends Controller
         $startDate = $request->input('startDate');
         $endDate = $request->input('endDate');
         $workers = DailyAttendanceHelper::getAttendanceData($startDate, $endDate);
-        dd($workers);
 
         return Pdf()
             ->view('pdf.report.daily.index', [

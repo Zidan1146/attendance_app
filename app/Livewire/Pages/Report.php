@@ -128,14 +128,9 @@ class Report extends BasePage
     public function export() {
         if($this->reportFileType === 'pdf') {
             if($this->reportPeriodType === 'monthly') {
-                $workers = MonthlyAttendanceHelper::getData(
-                    null,
-                    $this->selectedExportYear,
-                    $this->selectedMonth
-                );
                 $requestData = [
+                    'role' => $this->selectedExportRole,
                     'days' => $this->days,
-                    'workers' => $workers,
                     'now' => $this->now->toDateTimeString(),
                     'year' => $this->selectedExportYear,
                     'startMonth' => $this->selectedExportStartMonth,
