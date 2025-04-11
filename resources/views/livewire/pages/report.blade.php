@@ -1,6 +1,9 @@
 @extends('livewire.layout.app')
 
 @section('content')
+    @assets
+        <script type="module" src="https://unpkg.com/cally"></script>
+    @endassets
     <h1 class="text-2xl">Rekap Presensi</h1>
 
     <div class="flex flex-col justify-center">
@@ -67,7 +70,7 @@
                         <div class="modal-box">
                             <h3 class="text-lg font-bold">
                                 Export sebagai
-                                <select name="" id="" class="select select-sm bg-neutral" wire:model.live="reportFileType">
+                                <select wire:ignore.self name="" id="" class="select select-sm bg-neutral" wire:model.live="reportFileType">
                                     <option value="xlsx">xlsx</option>
                                     <option value="pdf">pdf</option>
                                 </select>
@@ -76,7 +79,7 @@
                             <div class="flex flex-col gap-4">
                                 <div class="flex flex-col">
                                     <label for="" class="label">Jenis Periode</label>
-                                    <select name="" id="" wire:model.live="reportPeriodType" class="join-item select bg-neutral">
+                                    <select wire:ignore.self name="" id="" wire:model.live="reportPeriodType" class="join-item select bg-neutral">
                                         <option value="monthly">Bulanan</option>
                                         <option value="daily">Harian</option>
                                     </select>
@@ -98,7 +101,7 @@
                                                     @endforeach
                                                 </select>
                                             @else
-                                                <select name="" id="" class="join-item select bg-neutral" wire:model.live="selectedStartDate" wire:key="start-date">
+                                                {{-- <select name="" id="" class="join-item select bg-neutral" wire:model.live="selectedStartDate" wire:key="start-date">
                                                     <option value="" disabled>- Dari Tanggal -</option>
                                                     @foreach ($availableDates as $date)
                                                         <option value="{{ $date }}">{{ $date->translatedFormat('j F Y') }}</option>
@@ -109,9 +112,21 @@
                                                     @foreach ($availableDates as $date)
                                                         <option value="{{ $date }}">{{ $date->translatedFormat('j F Y') }}</option>
                                                     @endforeach
-                                                </select>
+                                                </select> --}}
                                             @endif
                                         </div>
+                                        @if ($reportPeriodType === 'daily')
+                                            <button popovertarget="cally-popover1" class="input input-border" id="cally1" style="anchor-name:--cally1">
+                                                Pick a date
+                                            </button>
+                                            <div popover id="cally-popover1" class="dropdown bg-base-100 rounded-box shadow-lg" style="position-anchor:--cally1">
+                                                <calendar-date class="cally" onchange="document.getElementById('cally1').innerText = this.value">
+                                                <svg aria-label="Previous" class="fill-current size-4" slot="previous" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15.75 19.5 8.25 12l7.5-7.5"></path></svg>
+                                                <svg aria-label="Next" class="fill-current size-4" slot="next" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m8.25 4.5 7.5 7.5-7.5 7.5"></path></svg>
+                                                <calendar-month></calendar-month>
+                                                </calendar-date>
+                                            </div>
+                                        @endif
                                     </div>
                                     @if ($reportPeriodType === 'monthly')
                                         <div>

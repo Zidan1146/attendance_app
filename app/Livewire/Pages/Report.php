@@ -78,17 +78,6 @@ class Report extends BasePage
         $this->reportFileType = 'xlsx';
     }
 
-    public function calculateDateDiff()
-    {
-        if ($this->selectedStartDate && $this->selectedEndDate) {
-            $start = Carbon::parse($this->selectedStartDate);
-            $end = Carbon::parse($this->selectedEndDate);
-            $this->dateDiff = $start->diffInDays($end);
-        } else {
-            $this->dateDiff = 0;
-        }
-    }
-
     public function updatingSelectedMonth($value) {
         $this->days = DateHelper::getMonthDays(null, $value);
         $this->currentMonthName = DateHelper::getMonthName($value);
@@ -154,6 +143,17 @@ class Report extends BasePage
             if($this->reportPeriodType === 'daily') {
                 return $this->exportDailyData();
             }
+        }
+    }
+
+    public function calculateDateDiff()
+    {
+        if ($this->selectedStartDate && $this->selectedEndDate) {
+            $start = Carbon::parse($this->selectedStartDate);
+            $end = Carbon::parse($this->selectedEndDate);
+            $this->dateDiff = $start->diffInDays($end);
+        } else {
+            $this->dateDiff = 0;
         }
     }
 
