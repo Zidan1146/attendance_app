@@ -68,18 +68,25 @@
                     </button>
                     <dialog wire:ignore.self id="export_modal" class="modal">
                         <div class="modal-box">
-                            <h3 class="text-lg font-bold">
+                            <h3
+                                class="text-lg font-bold"
+                                x-data="{ fileType: $wire.entangle('reportFileType') }">
                                 Export sebagai
-                                <select wire:ignore.self name="" id="" class="select select-sm bg-neutral" wire:model.live="reportFileType">
+                                <select
+                                    class="select select-sm bg-neutral"
+                                    x-model="fileType">
                                     <option value="xlsx">xlsx</option>
                                     <option value="pdf">pdf</option>
                                 </select>
-                                {{ $reportFileType }}
                             </h3>
-                            <div class="flex flex-col gap-4">
+                            <div
+                                class="flex flex-col gap-4"
+                                x-data="{
+                                    periodType: $wire.entangle('reportPeriodType').live
+                                }">
                                 <div class="flex flex-col">
                                     <label for="" class="label">Jenis Periode</label>
-                                    <select wire:ignore.self name="" id="" wire:model.live="reportPeriodType" class="join-item select bg-neutral">
+                                    <select wire:ignore.self name="" id="" x-model="periodType" class="join-item select bg-neutral">
                                         <option value="monthly">Bulanan</option>
                                         <option value="daily">Harian</option>
                                     </select>
@@ -88,56 +95,75 @@
                                 <div class="flex justify-between">
                                     <div class="">
                                         <label for="" class="label">Periode</label>
-                                        <div class="join">
-                                            @if ($reportPeriodType === 'monthly')
-                                                <select name="" id="" class="join-item select bg-neutral" wire:model.live="selectedExportStartMonth" wire:key="start-month">
-                                                    @foreach ($months as $monthNumber => $monthName)
-                                                        <option value="{{ $monthNumber }}">{{ $monthName }}</option>
-                                                    @endforeach
-                                                </select>
-                                                <select name="" id="" class="join-item select bg-neutral" wire:model.live="selectedExportEndMonth" wire:key="end-month">
-                                                    @foreach ($months as $monthNumber => $monthName)
-                                                        <option value="{{ $monthNumber }}">{{ $monthName }}</option>
-                                                    @endforeach
-                                                </select>
-                                            @else
-                                                {{-- <select name="" id="" class="join-item select bg-neutral" wire:model.live="selectedStartDate" wire:key="start-date">
-                                                    <option value="" disabled>- Dari Tanggal -</option>
-                                                    @foreach ($availableDates as $date)
-                                                        <option value="{{ $date }}">{{ $date->translatedFormat('j F Y') }}</option>
-                                                    @endforeach
-                                                </select>
-                                                <select name="" id="" class="join-item select bg-neutral" wire:model.live="selectedEndDate" wire:key="end-date">
-                                                    <option value="" disabled>- Sampai Tanggal -</option>
-                                                    @foreach ($availableDates as $date)
-                                                        <option value="{{ $date }}">{{ $date->translatedFormat('j F Y') }}</option>
-                                                    @endforeach
-                                                </select> --}}
-                                            @endif
-                                        </div>
-                                        @if ($reportPeriodType === 'daily')
-                                            <button popovertarget="cally-popover1" class="input input-border" id="cally1" style="anchor-name:--cally1">
-                                                Pick a date
-                                            </button>
-                                            <div popover id="cally-popover1" class="dropdown bg-base-100 rounded-box shadow-lg" style="position-anchor:--cally1">
-                                                <calendar-date class="cally" onchange="document.getElementById('cally1').innerText = this.value">
-                                                <svg aria-label="Previous" class="fill-current size-4" slot="previous" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15.75 19.5 8.25 12l7.5-7.5"></path></svg>
-                                                <svg aria-label="Next" class="fill-current size-4" slot="next" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m8.25 4.5 7.5 7.5-7.5 7.5"></path></svg>
-                                                <calendar-month></calendar-month>
-                                                </calendar-date>
-                                            </div>
-                                        @endif
-                                    </div>
-                                    @if ($reportPeriodType === 'monthly')
-                                        <div>
-                                            <label for="" class="label">Tahun</label>
-                                            <select name="" id="" class="join-item select bg-neutral" wire:model="selectedExportYear">
-                                                @foreach ($years as $year)
-                                                    <option value="{{ $year }}" {{ $year === $selectedYear ? 'selected' : '' }}>{{ $year }}</option>
+                                        {{-- Shown when periodType === Monthly --}}
+                                        <div class="join" x-show="periodType === 'monthly'">
+                                            <select name="" id="" class="join-item select bg-neutral" wire:model.live="selectedExportStartMonth" wire:key="start-month">
+                                                @foreach ($months as $monthNumber => $monthName)
+                                                    <option value="{{ $monthNumber }}">{{ $monthName }}</option>
+                                                @endforeach
+                                            </select>
+                                            <select name="" id="" class="join-item select bg-neutral" wire:model.live="selectedExportEndMonth" wire:key="end-month">
+                                                @foreach ($months as $monthNumber => $monthName)
+                                                    <option value="{{ $monthNumber }}">{{ $monthName }}</option>
                                                 @endforeach
                                             </select>
                                         </div>
-                                    @endif
+                                        {{-- End Monthly --}}
+
+                                        {{-- Shown when periodType === Daily --}}
+                                        <div
+                                            x-show="periodType === 'daily'"
+                                            x-data="{
+                                                calendarToggle: $wire.entangle('isCalendarOpen').live,
+                                                selectedDate: $wire.entangle('selectedExportDate').live
+                                            }">
+                                            <button
+                                                x-on:click="calendarToggle = !calendarToggle"
+                                                popovertarget="cally-popover1"
+                                                class="input input-border bg-neutral"
+                                                id="cally1"
+                                                style="anchor-name:--cally1">
+                                                {{ $selectedExportDate ? "$selectedStartDate sampai $selectedEndDate" : "Pilih Tanggal" }}
+                                            </button>
+                                            <div
+                                                popover
+                                                x-show="calendarToggle"
+                                                x-on:click.outside="calendarToggle = !calendarToggle"
+                                                id="cally-popover1"
+                                                class="dropdown bg-neutral rounded-box shadow-lg"
+                                                style="position-anchor:--cally1">
+                                                <calendar-range
+                                                    class="cally"
+                                                    @change="selectedDate = $event.target.value"
+                                                    months="2">
+                                                    <svg aria-label="Previous" class="fill-current size-4" slot="previous" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15.75 19.5 8.25 12l7.5-7.5"></path></svg>
+                                                    <svg aria-label="Next" class="fill-current size-4" slot="next" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m8.25 4.5 7.5 7.5-7.5 7.5"></path></svg>
+                                                    <div class="flex flex-row">
+                                                        <calendar-month></calendar-month>
+                                                        <calendar-month offset="1"></calendar-month>
+                                                    </div>
+                                                    <div class="m-4 flex justify-end">
+                                                        <button
+                                                            class="btn btn-primary"
+                                                            x-on:click="calendarToggle = !calendarToggle">
+                                                            Exit
+                                                        </button>
+                                                    </div>
+                                                </calendar-range>
+                                            </div>
+                                        </div>
+                                        {{-- End Daily --}}
+                                    </div>
+                                    {{-- Shown when periodType === Monthly --}}
+                                    <div x-show="periodType === 'monthly'">
+                                        <label for="" class="label">Tahun</label>
+                                        <select name="" id="" class="join-item select bg-neutral" wire:model="selectedExportYear">
+                                            @foreach ($years as $year)
+                                                <option value="{{ $year }}" {{ $year === $selectedYear ? 'selected' : '' }}>{{ $year }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    {{-- End Monthly --}}
                                     <div>
                                         <label for="" class="label">Jabatan</label>
                                         <select name="" id="" class="join-item select bg-neutral" wire:model="selectedExportRole">
@@ -165,6 +191,7 @@
                                 @endif
                             </div>
                             <div class="modal-action">
+
                                 <form wire:submit="export">
                                     <button class="btn btn-primary"
                                         @disabled($exportErrorType > 0)>
@@ -176,7 +203,7 @@
                                     </button>
                                 </form>
                                 <form method="dialog">
-                                    <button class="btn">Close</button>
+                                    <button class="btn" @disabled($isCalendarOpen)>Close</button>
                                 </form>
                             </div>
                         </div>

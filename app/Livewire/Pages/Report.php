@@ -37,9 +37,11 @@ class Report extends BasePage
     public $availableDates;
     public $selectedStartDate;
     public $selectedEndDate;
+    public $selectedExportDate;
     public $dateDiff;
     public $exportErrorType;
     public $reportFileType;
+    public $isCalendarOpen;
 
     public function mount() {
         parent::authCheck();
@@ -71,16 +73,30 @@ class Report extends BasePage
 
         $this->selectedStartDate = '';
         $this->selectedEndDate = '';
+        $this->selectedExportDate = '';
 
         $this->availableDates = Absensi::distinct()->orderBy('tanggal')->pluck('tanggal');
         $this->exportErrorType = 0;
 
         $this->reportFileType = 'xlsx';
+
+        $this->isCalendarOpen = false;
     }
 
     public function updatingSelectedMonth($value) {
         $this->days = DateHelper::getMonthDays(null, $value);
         $this->currentMonthName = DateHelper::getMonthName($value);
+    }
+
+    public function updatingSelectedExportDate($value) {
+        if(str_contains($value, '/')) {
+            $splittedStr = explode('/', $value);
+            $this->selectedStartDate = $splittedStr[0];
+            $this->selectedEndDate = $splittedStr[1];
+        } else {
+            $this->selectedStartDate = $value;
+            $this->selectedEndDate = $value;
+        }
     }
 
     public function exportMonthlyData() {
@@ -115,6 +131,10 @@ class Report extends BasePage
     }
 
     public function export() {
+        if(!$this->validateExportWrapper()) {
+            return;
+        }
+
         if($this->reportFileType === 'pdf') {
             if($this->reportPeriodType === 'monthly') {
                 $requestData = [
@@ -159,14 +179,21 @@ class Report extends BasePage
 
     public function updated($property)
     {
-        if(in_array($property, ['selectedStartDate', 'selectedEndDate', 'selectedYear', 'selectedExportStartMonth', 'selectedExportEndMonth', 'reportPeriodType', 'reportFileType'])) {
+        if(in_array($property, ['selectedYear', 'selectedExportStartMonth', 'selectedExportEndMonth', 'reportPeriodType', 'reportFileType', 'selectedExportDate'])) {
             $this->resetPage();
-            $this->calculateDateDiff();
-            $this->exportErrorType = $this->validateExport();
+            $this->validateExportWrapper();
         }
     }
 
-    public function validateExport() {
+    private function validateExportWrapper() {
+        $this->calculateDateDiff();
+        $this->exportErrorType = $this->validateExport();
+        if($this->exportErrorType !== ExportErrorType::None->value) {
+            return false;
+        }
+        return true;
+    }
+    private function validateExport() {
         $isDataDaily = $this->reportPeriodType === 'daily';
         $isDateSelectionEmpty = $this->selectedStartDate === '' || $this->selectedEndDate === '';
         $isMonthDifference = $this->dateDiff > 30;
