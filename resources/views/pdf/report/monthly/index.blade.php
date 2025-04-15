@@ -1,5 +1,8 @@
 <x-layouts.app>
     <div>
+        @php
+            $completedMonths = [];
+        @endphp
         @for ($month = $request['startMonth']; $month <= $request['endMonth']; $month++)
             @php
                 $monthYearString = Carbon\Carbon::createFromDate($request['year'], $month, 1)->translatedFormat('F Y');
@@ -11,7 +14,7 @@
                         <tr style="color: #374151; background-color: #E5E7EB;">
                             <th style="border: 1px solid #000000;">No</th>
                             <th style="border: 1px solid #000000;">Nama</th>
-                            @foreach ($request['days'] as $day)
+                            @foreach ($days[$month] as $day)
                                 <th style="padding: 4px; text-align: center; border: 1px solid #000000; {{ $day['is_weekend'] ? 'background-color: #DC2626; color: #FAFAFA;' : '' }}">
                                     {{ $day['day_number'] }}
                                 </th>
@@ -19,20 +22,48 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($workers as $karyawan)
+                        @foreach ($workers as $_key => $karyawan)
                             <tr>
                                 <td style="padding: 8px; border: 1px solid #000000;">{{ $loop->iteration }}</td>
                                 <td style="padding: 8px; border: 1px solid #000000;">{{ $karyawan['nama'] }}</td>
                                 @php
                                     $previousValue = 0;
+                                    $fillOnce = false;
                                 @endphp
                                 @foreach ($karyawan['absensi'] as $key => $absensi)
                                     @php
-                                        $currentAttendanceMonth = explode('_', $key)[0];
+                                        $currentAttendance = explode('_', $key);
+                                        $currentAttendanceMonth = $currentAttendance[0];
+                                        $currentAttendanceDate = $currentAttendance[1];
                                     @endphp
 
-                                    @foreach ($request['days'] as $day)
+                                    @foreach ($days[$month] as $day)
+                                        @php
+                                            $dayDifference = count($days[$month]) - $previousValue;
+                                        @endphp
                                         @continue($previousValue >= $day['day_number'])
+                                        @if (
+                                            $dayDifference > 0 &&
+                                            ((int) $month !== (int) $currentAttendanceMonth) &&
+                                            !in_array($currentAttendanceMonth, $completedMonths) &&
+                                            !$fillOnce
+                                        )
+
+                                            @for ($i = 0; $i < $dayDifference; $i++)
+                                                @php
+                                                    $dayNumber = $previousValue + $i;
+                                                    $isCurrentDateWeekend = $days[$month]["{$dayNumber}"]['is_weekend'] ?? null;
+                                                @endphp
+                                                @break(is_null($isCurrentDateWeekend))
+
+                                                <td style="padding: 0; margin: 0; text-align: center; border: 1px solid #000000; {{ $isCurrentDateWeekend ? '' : 'background-color: #DC2626; color: #FAFAFA;'}}">
+                                                    {{ $isCurrentDateWeekend ? '' : 'a'}}
+                                                </td>
+                                            @endfor
+                                            @php
+                                                $fillOnce = true;
+                                            @endphp
+                                        @endif
                                         @break(
                                             ((int) $now->format('j') < $day['day_number'] &&
                                             (int) $now->month <= (int) $month) ||
@@ -42,7 +73,7 @@
                                         @php
                                             $clockInStatus = isset($absensi['absen_masuk_status']) ? $absensi['absen_masuk_status'] : 'none';
                                             $clockOutStatus = isset($absensi['absen_keluar_status']) ? $absensi['absen_keluar_status'] : 'none';
-                                            $isDateMatch = $absensi['tanggal'] === $day['day_number'];
+                                            $isDateMatch = (int) $absensi['tanggal'] === (int) $day['day_number'];
                                             $isClockInOnTime = $clockInStatus === 'tepatWaktu';
                                             $isClockOutOnTime = $clockOutStatus === 'tepatWaktu';
                                             $isOnTime = $isClockInOnTime && $isClockOutOnTime && $isDateMatch;
@@ -116,6 +147,9 @@
                     </tr>
                 </table>
             </div>
+            @php
+                $completedMonths[] = $month;
+            @endphp
             @pageBreak
         @endfor
     </div>

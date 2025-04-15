@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Pdf;
 
 use App\Http\Controllers\Controller;
+use App\Utils\DateHelper;
 use App\Utils\MonthlyAttendanceHelper;
 use Illuminate\Http\Request;
 use Spatie\LaravelPdf\Enums\Format;
@@ -23,12 +24,18 @@ class DownloadMonthlyReports extends Controller
             $request->get('startMonth'),
             $request->get('endMonth'),
         );
+        $days = DateHelper::getManyMonthDays(
+            $request->get('year'),
+            $request->get('startMonth'),
+            $request->get('endMonth')
+        );
 
         return Pdf()
             ->view('pdf.report.monthly.index', [
                 'request' => $request->all(),
                 'now' => $carbonNow,
-                'workers' => $workers
+                'workers' => $workers,
+                'days' => $days
             ])
             ->format(Format::A4)
             ->orientation(Orientation::Landscape)

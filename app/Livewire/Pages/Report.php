@@ -139,7 +139,6 @@ class Report extends BasePage
             if($this->reportPeriodType === 'monthly') {
                 $requestData = [
                     'role' => $this->selectedExportRole,
-                    'days' => $this->days,
                     'now' => $this->now->toDateTimeString(),
                     'year' => $this->selectedExportYear,
                     'startMonth' => $this->selectedExportStartMonth,

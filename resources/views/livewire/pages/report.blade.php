@@ -114,7 +114,7 @@
                                         <div
                                             x-show="periodType === 'daily'"
                                             x-data="{
-                                                calendarToggle: $wire.entangle('isCalendarOpen').live,
+                                                calendarToggle: false,
                                                 selectedDate: $wire.entangle('selectedExportDate').live
                                             }">
                                             <button
@@ -128,7 +128,7 @@
                                             <div
                                                 popover
                                                 x-show="calendarToggle"
-                                                x-on:click.outside="calendarToggle = !calendarToggle"
+                                                x-on:click.outside="calendarToggle = false"
                                                 id="cally-popover1"
                                                 class="dropdown bg-neutral rounded-box shadow-lg"
                                                 style="position-anchor:--cally1">
@@ -144,9 +144,9 @@
                                                     </div>
                                                     <div class="m-4 flex justify-end">
                                                         <button
-                                                            class="btn btn-primary"
-                                                            x-on:click="calendarToggle = !calendarToggle">
-                                                            Exit
+                                                            class="btn btn-primary px-4"
+                                                            x-on:click="calendarToggle = false">
+                                                            Confirm
                                                         </button>
                                                     </div>
                                                 </calendar-range>

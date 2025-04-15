@@ -20,6 +20,14 @@ class DateHelper {
         return $days;
     }
 
+    public static function getManyMonthDays($year, $startMonth, $endMonth) {
+        $days = [];
+        for($i = $startMonth; $i <= $endMonth; $i++) {
+            $days[$i] = self::getMonthDays($year, $i);
+        }
+        return $days;
+    }
+
     public static function getMonthName($month) {
         $date = Carbon::create(null, $month, 1)->locale('id');
 
