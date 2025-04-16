@@ -31,22 +31,13 @@ class EditWorker extends BasePage
     }
 
     public function update() {
-        $this->validate();
-
-        $this->form->noTelepon = "+62{$this->form->noTelepon}";
-
-        Karyawan::findOrFail($this->worker->id)->update(
-            $this->form->all()
-        );
-
+        $this->form->update($this->worker->id);
         $this->redirectRoute('worker');
     }
 
     public function render()
     {
-        $worker = $this->worker;
-        $roles = $this->roles;
-        return view('livewire.pages.crud.edit-worker', compact( 'roles'));
+        return view('livewire.pages.crud.edit-worker');
     }
 
     private function splitPhoneNumber($phone) {

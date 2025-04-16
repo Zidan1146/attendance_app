@@ -40,9 +40,11 @@
                             </div>
                         </div>
                         <div class="flex flex-col min-w-40 w-80 gapy-2">
-                            <label for="password" class="text-lg">Kata Sandi</label>
-                            <input type="password" disabled
-                                class="text-lg rounded-sm bg-zinc-50 input input-bordered input-disabled">
+                            <label for="password" class="text-lg">Kata Sandi (Opsional)</label>
+                            <input type="password"
+                                wire:model.live="form.password"
+                                class="text-lg rounded-sm bg-zinc-50 input input-bordered"
+                                placeholder="Masukkan Kata Sandi Baru">
                         </div>
                     </div>
                     <div class="flex items-center justify-center w-full">
@@ -86,7 +88,7 @@
                                 <span class="loading loading-spinner loading-md"></span>
                             </div>
 
-                            Daftar
+                            Edit
                         </button>
                     </div>
                 </div>

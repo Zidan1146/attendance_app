@@ -229,7 +229,7 @@ class Report extends BasePage
             $this->selectedYear,
             $this->selectedMonth,
             null,
-            5
+            10
         );
 
         $finalWorkers = [];

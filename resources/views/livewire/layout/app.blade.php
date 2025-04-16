@@ -1,4 +1,5 @@
-<div class="relative flex">
+<div
+    class="relative flex">
     <aside class="fixed h-screen p-4 text-white transition-all duration-150 bg-primary"
         style="width: {{ $isCollapsed ? '5rem' : '16rem' }}">
         <!-- Menu Button -->
