@@ -43,7 +43,7 @@ class MonthlyAttendanceHelper
         $workersQuery = Karyawan::query();
 
         if($role) {
-            $workersQuery->where('jabatan', '=', $role);
+            $workersQuery->where('jabatan_id', '=', $role);
         }
 
         $attendanceData = $workersQuery->whereHas('absensi', function ($query) use ($year, $startMonth, $endMonth) {
@@ -80,7 +80,7 @@ class MonthlyAttendanceHelper
                 $result[$worker->id] = [
                     'id' => $worker->id,
                     'nama' => $worker->nama,
-                    'jabatan' => $worker->jabatan,
+                    'jabatan' => $worker->jabatan->nama ?? 'Tanpa Jabatan',
                     'absensi' => []
                 ];
             }

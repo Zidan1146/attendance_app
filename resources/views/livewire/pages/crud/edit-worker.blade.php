@@ -47,15 +47,59 @@
                                 placeholder="Masukkan Kata Sandi Baru">
                         </div>
                     </div>
-                    <div class="flex items-center justify-center w-full">
+                    <div class="flex items-center justify-center w-full gap-8">
                         <div class="flex flex-col w-full min-w-40 gapy-2">
                             <label for="jabatan" class="text-lg">Jabatan</label>
-                            <select wire:model.live="form.jabatan" name="jabatan" id="jabatan"
+                            <select wire:model.live="form.jabatan_id" name="jabatan" id="jabatan"
                                 class="text-lg rounded-sm bg-zinc-50 select select-bordered min-h-6">
-                                @foreach ($roles as $role)
-                                    <option value="{{ $role->value }}">{{ $role->name }}</option>
+                                @foreach ($roles as $jabatan)
+                                    <option value="{{ $jabatan->id }}">{{ $jabatan->nama }}</option>
                                 @endforeach
                             </select>
+                        </div>
+                        <div class="flex flex-col w-full min-w-40 gapy-2">
+                            <label for="permission" class="text-lg">Permission</label>
+                            <select wire:model.live="form.permission" name="permission" id="permission"
+                                class="text-lg rounded-sm bg-zinc-50 select select-bordered min-h-6">
+                                @foreach ($permissions as $permission)
+                                    <option value="{{ $permission->value }}">{{ $permission->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-center w-full gap-8">
+                        <div class="flex flex-col w-full min-w-40 gapy-2">
+                            <div class="flex items-center justify-center w-full gap-8">
+                                <div class="flex flex-col w-full min-w-40 gapy-2">
+                                    <fieldset class="fieldset w-full">
+                                        <legend class="fieldset-legend">Foto (Opsional)</legend>
+                                        <input type="file" class="file-input w-full" wire:model.live="form.foto" accept="image/*" />
+                                        <label class="label">Ukuran Maksimal 2MB</label>
+                                    </fieldset>
+                                    <div class="flex flex-row gap-4">
+                                        @if ($existingAvatar)
+                                            <div
+                                                class="tooltip"
+                                                data-tip="Foto sebelumnya">
+                                                <img
+                                                    src="{{ asset('storage/'.$existingAvatar) }}"
+                                                    class="w-12 h-12 rounded-md object-cover object-center"
+                                                    alt="Foto Sebelumnya">
+                                            </div>
+                                        @endif
+                                        @if($form->foto)
+                                            <div
+                                                class="tooltip"
+                                                data-tip="Foto terupload">
+                                                <img
+                                                    src="{{ $form->foto->temporaryUrl() }}"
+                                                    class="w-12 h-12 rounded-md object-cover object-center"
+                                                    alt="{{ $form->foto }}">
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="flex items-center justify-center w-full">

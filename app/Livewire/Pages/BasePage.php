@@ -1,8 +1,6 @@
 <?php
 namespace App\Livewire\Pages;
 
-use App\Enums\RolePosition;
-use App\Enums\TipeAbsensi;
 use App\Livewire\Traits\WithRouteInfo;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Session;

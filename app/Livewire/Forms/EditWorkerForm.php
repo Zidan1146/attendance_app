@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Forms;
 
+use App\Enums\Permission;
 use App\Enums\RolePosition;
 use App\Models\Karyawan;
 use Livewire\Attributes\Validate;
@@ -19,7 +20,7 @@ class EditWorkerForm extends Form
     public $noTelepon;
 
     #[Validate('required')]
-    public $jabatan = RolePosition::HR->value;
+    public $jabatan_id;
 
     #[Validate('required|regex:/^[a-zA-Z0-9_]{3,16}$/')]
     public $username;
@@ -27,14 +28,28 @@ class EditWorkerForm extends Form
     #[Validate('nullable|min:8')]
     public $password;
 
+    #[Validate('required')]
+    public $permission = Permission::User->value;
+
+    #[Validate('nullable|max:2048|mimes:jpg,jpeg,png,webp')]
+    public $foto;
+
     public function update($id) {
         $this->validate();
+        $excludedProperties = [];
 
         $this->noTelepon = "+62{$this->noTelepon}";
-        $formData = $this->all();
-        if(!$this->password) {
-            $formData = $this->except('password');
+        if($this->foto) {
+            $this->foto = $this->foto->store('avatar', 'public');
         }
+        if(!$this->password) {
+            $excludedProperties[] = 'password';
+        }
+        if(!$this->foto) {
+            $excludedProperties[] = 'foto';
+        }
+
+        $formData = $this->except($excludedProperties);
 
         Karyawan::findOrFail($id)->update($formData);
     }

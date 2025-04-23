@@ -44,7 +44,7 @@ class MonthlyExport implements FromCollection, ShouldAutoSize, WithHeadings, Wit
             $row = [
                 $index + 1,
                 $worker['nama'],
-                $worker['jabatan']->name
+                $worker['jabatan']
             ];
             $index++;
 

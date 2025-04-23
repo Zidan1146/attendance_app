@@ -32,8 +32,9 @@
                     <span class="label">Jabatan</span>
                     <select class="select select-bordered bg-neutral" wire:model.live="selectedRole">
                         <option value="">Semua Jabatan</option>
+                        <option value="-1">Tanpa Jabatan</option>
                         @foreach ($roles as $jabatan)
-                            <option value="{{ $jabatan->value }}">{{ $jabatan->name }}</option>
+                            <option value="{{ $jabatan->id }}">{{ $jabatan->nama }}</option>
                         @endforeach
                     </select>
                 </label>
@@ -49,19 +50,26 @@
                     <th>Alamat</th>
                     <th>No telepon</th>
                     <th>Jabatan</th>
-                    <th>Waktu dibuat</th>
+                    <th>Permission</th>
                     <th>Aksi</th>
                 </thead>
                 <tbody>
                     @foreach ($workers as $karyawan)
                         <tr>
                             <td>{{ $loop->iteration + $startNumber }}</td>
-                            <td>{{ $karyawan->nama }}</td>
+                            <td class="flex flex-row gap-2 h-full items-center">
+                                @if ($karyawan->foto)
+                                    <div class="h-full">
+                                        <img src="{{ asset('storage/'.$karyawan->foto) }}" class="w-12 h-12 rounded-md object-cover object-center" alt="{{ $karyawan->nama }}">
+                                    </div>
+                                @endif
+                                <span class="h-full">{{ $karyawan->nama }}</span>
+                            </td>
                             <td>{{ $karyawan->username }}</td>
                             <td>{{ $karyawan->alamat }}</td>
                             <td>{{ $karyawan->noTelepon }}</td>
-                            <td>{{ $karyawan->jabatan->name }}</td>
-                            <td>{{ $karyawan->created_at }}</td>
+                            <td>{{ $karyawan->jabatan->nama ?? 'Tanpa Jabatan' }}</td>
+                            <td>{{ $karyawan->permission }}</td>
                             <td class="flex gap-2">
                                 <a class="btn btn-square btn-primary" href="{{ route('worker.edit', ['id' => $karyawan->id]) }}" wire:navigate>
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"

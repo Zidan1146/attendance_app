@@ -4,12 +4,11 @@ namespace App\Livewire\Pages;
 
 use App\Enums\ExportErrorType;
 use App\Enums\RolePosition;
-use App\Enums\TipeAbsensi;
 use App\Exports\MultiDailyExport;
 use App\Exports\MultiMonthlyExport;
 use App\Models\Absensi;
+use App\Models\Jabatan;
 use App\Utils\DateHelper;
-use App\Models\Karyawan;
 use App\Utils\MonthlyAttendanceHelper;
 use Carbon\Carbon;
 use Livewire\WithPagination;
@@ -63,7 +62,7 @@ class Report extends BasePage
         $this->selectedMonth = $now->month;
         $this->selectedYear = $now->year;
 
-        $this->roles = RolePosition::cases();
+        $this->roles = Jabatan::all();
         $this->now = $now;
 
         $this->reportPeriodType = "monthly";

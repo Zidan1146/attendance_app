@@ -17,7 +17,7 @@
                         <select name="" id="" wire:model.live="selectedRole" class="w-full select bg-neutral select-bordered">
                             <option value="">Semua</option>
                             @foreach ($roles as $jabatan)
-                                <option value="{{ $jabatan->value }}">{{ $jabatan->name }}</option>
+                                <option value="{{ $jabatan->id }}">{{ $jabatan->nama }}</option>
                             @endforeach
                         </select>
                     </label>
@@ -114,7 +114,7 @@
                                         <div
                                             x-show="periodType === 'daily'"
                                             x-data="{
-                                                calendarToggle: false,
+                                                calendarToggle: $wire.entangle('isCalendarOpen').live,
                                                 selectedDate: $wire.entangle('selectedExportDate').live
                                             }">
                                             <button
@@ -169,7 +169,7 @@
                                         <select name="" id="" class="join-item select bg-neutral" wire:model="selectedExportRole">
                                             <option value="">Semua</option>
                                             @foreach ($roles as $jabatan)
-                                                <option value="{{ $jabatan->value }}">{{ $jabatan->name }}</option>
+                                                <option value="{{ $jabatan->id }}">{{ $jabatan->nama }}</option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -230,7 +230,7 @@
                         <tr wire:key="karyawan-{{ $karyawan['id'] }}">
                             <td class="p-2 border border-gray-300">{{ $loop->iteration + $startNumber }}</td>
                             <td class="p-2 border border-gray-300">{{ $karyawan['nama'] }}</td>
-                            <td class="p-2 border border-gray-300">{{ $karyawan['jabatan']->name }}</td>
+                            <td class="p-2 border border-gray-300">{{ $karyawan['jabatan'] }}</td>
                             @php
                                 $previousValue = 0;
                             @endphp

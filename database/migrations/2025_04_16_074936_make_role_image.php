@@ -11,7 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        //
+        try {
+            Schema::create('jabatans', function(Blueprint $table) {
+                $table->id();
+                $table->string('nama');
+                $table->timestamps();
+            });
+        } catch (\Throwable $th) {
+            $this->down();
+            throw $th;
+        }
     }
 
     /**
@@ -19,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('jabatans');
     }
 };

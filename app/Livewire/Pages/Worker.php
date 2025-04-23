@@ -4,6 +4,7 @@ namespace App\Livewire\Pages;
 
 use App\Enums\RolePosition;
 use App\Models\Absensi;
+use App\Models\Jabatan;
 use App\Models\Karyawan;
 use Livewire\WithPagination;
 
@@ -17,7 +18,7 @@ class Worker extends BasePage
 
     public function mount() {
         parent::authCheck();
-        $this->roles = RolePosition::cases();
+        $this->roles = Jabatan::all();
     }
 
     public function updatingSearch() {
@@ -37,7 +38,8 @@ class Worker extends BasePage
         $workerQuery = Karyawan::query();
 
         if($this->selectedRole) {
-            $workerQuery->where('jabatan', '=', $this->selectedRole);
+            $selectedRole = $this->selectedRole === '-1' ? null : $this->selectedRole;
+            $workerQuery->where('jabatan_id', '=', $selectedRole);
         }
 
         if($this->search) {

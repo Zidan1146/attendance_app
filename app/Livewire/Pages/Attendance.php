@@ -2,10 +2,10 @@
 
 namespace App\Livewire\Pages;
 
-use App\Enums\RolePosition;
 use App\Enums\StatusAbsen;
 use App\Enums\TipeAbsensi;
 use App\Models\Absensi;
+use App\Models\Jabatan;
 
 class Attendance extends BasePage
 {
@@ -36,7 +36,7 @@ class Attendance extends BasePage
     }
     public function mount() {
         parent::authCheck();
-        $this->roles = RolePosition::cases();
+        $this->roles = Jabatan::all();
         $this->attendaceTypes = TipeAbsensi::cases();
         $this->attendanceStatuses = StatusAbsen::cases();
         $this->availableDates = Absensi::distinct()->orderBy('tanggal')->pluck('tanggal');
@@ -50,7 +50,8 @@ class Attendance extends BasePage
 
         if($this->selectedRole) {
             $absensiQuery->whereHas('karyawan', function($query) {
-                $query->where('jabatan', '=', $this->selectedRole);
+                $selectedRole = $this->selectedRole === '-1' ? null : $this->selectedRole;
+                $query->where('jabatan_id', '=', $selectedRole);
             });
         }
         if($this->selectedAttendanceType) {

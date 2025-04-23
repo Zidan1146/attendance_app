@@ -128,20 +128,20 @@
                                 <tbody>
                                     @foreach ($todayData as $absensi)
                                         @php
-        $jenis = match ($absensi->jenisAbsen) {
-                $jenisAbsenEnum::AbsenMasuk => 'Masuk',
-                $jenisAbsenEnum::AbsenKeluar => 'Keluar',
-                $jenisAbsenEnum::Lembur => $jenisAbsenEnum::Lembur,
-            default => '',
-        };
-        $statusStyling = match ($absensi->status) {
-                $statusAbsenEnum::TidakDiketahui => 'bg-error text-zinc-50',
-                $statusAbsenEnum::TepatWaktu => 'bg-success',
-                $statusAbsenEnum::Terlambat => 'bg-error text-zinc-50',
-                $statusAbsenEnum::LebihAwal => 'bg-warning',
-                $statusAbsenEnum::TidakAbsen => 'bg-error text-zinc-50',
-            default => ''
-        }
+                                            $jenis = match ($absensi->jenisAbsen) {
+                                                    $jenisAbsenEnum::AbsenMasuk => 'Masuk',
+                                                    $jenisAbsenEnum::AbsenKeluar => 'Keluar',
+                                                    $jenisAbsenEnum::Lembur => $jenisAbsenEnum::Lembur,
+                                                default => '',
+                                            };
+                                            $statusStyling = match ($absensi->status) {
+                                                    $statusAbsenEnum::TidakDiketahui => 'bg-error text-zinc-50',
+                                                    $statusAbsenEnum::TepatWaktu => 'bg-success',
+                                                    $statusAbsenEnum::Terlambat => 'bg-error text-zinc-50',
+                                                    $statusAbsenEnum::LebihAwal => 'bg-warning',
+                                                    $statusAbsenEnum::TidakAbsen => 'bg-error text-zinc-50',
+                                                default => ''
+                                            }
                                         @endphp
                                         <tr>
                                             <td>{{ $loop->iteration + $startNumber }}</td>

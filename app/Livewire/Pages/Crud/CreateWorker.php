@@ -2,21 +2,28 @@
 
 namespace App\Livewire\Pages\Crud;
 
+use App\Enums\Permission;
 use App\Enums\RolePosition;
 use App\Models\Karyawan;
 use App\Livewire\Forms\CreateWorkerForm as WorkerForm;
 use App\Livewire\Pages\BasePage;
+use App\Models\Jabatan;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
+use Livewire\WithFileUploads;
 
 class CreateWorker extends BasePage
 {
+    use WithFileUploads;
     public WorkerForm $form;
     public $roles;
+    public $permissions;
 
     public function mount() {
         parent::authCheck();
-        $this->roles = RolePosition::cases();
+        $this->roles = Jabatan::all();
+        $this->permissions = Permission::cases();
+        $this->form->jabatan_id = Jabatan::orderBy('id')->first()->id;
     }
 
     public function updated($name, $value)
@@ -57,6 +64,8 @@ class CreateWorker extends BasePage
         $this->form->validate();
 
         $this->form->noTelepon = "+62{$this->form->noTelepon}";
+
+        $this->form->foto = $this->form->foto->store('avatar', 'public');
 
         Karyawan::create(
             $this->form->all()
