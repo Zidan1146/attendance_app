@@ -35,7 +35,7 @@ class Attendance extends BasePage
         }
     }
     public function mount() {
-        parent::authCheck();
+        parent::userInit();
         $this->roles = Jabatan::all();
         $this->attendaceTypes = TipeAbsensi::cases();
         $this->attendanceStatuses = StatusAbsen::cases();
@@ -47,6 +47,12 @@ class Attendance extends BasePage
     public function render()
     {
         $absensiQuery = Absensi::query();
+
+        if($this->user->permission->value === 'user') {
+            $absensiQuery->whereHas('karyawan', function($query) {
+                $query->where('id', '=', $this->user->id);
+            });
+        }
 
         if($this->selectedRole) {
             $absensiQuery->whereHas('karyawan', function($query) {

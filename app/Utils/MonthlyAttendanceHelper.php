@@ -13,13 +13,15 @@ class MonthlyAttendanceHelper
         $year,
         $startMonth,
         $endMonth = null,
-        $paginateCount = null
+        $paginateCount = null,
+        $user = null
     ) {
         $query = self::getAttendanceData(
             $role,
             $year,
             $startMonth,
             $endMonth,
+            $user
         );
 
         $attendanceData = $paginateCount ? $query->paginate($paginateCount) : $query->get();
@@ -37,13 +39,18 @@ class MonthlyAttendanceHelper
         $role = null,
         $year,
         $startMonth,
-        $endMonth = null
+        $endMonth = null,
+        $user = null
     )
     {
         $workersQuery = Karyawan::query();
 
         if($role) {
             $workersQuery->where('jabatan_id', '=', $role);
+        }
+
+        else if($user) {
+            $workersQuery->where('id', '=', $user);
         }
 
         $attendanceData = $workersQuery->whereHas('absensi', function ($query) use ($year, $startMonth, $endMonth) {

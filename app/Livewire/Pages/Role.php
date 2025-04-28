@@ -22,8 +22,10 @@ class Role extends BasePage
     public function updatingSearch() {
         $this->resetPage();
     }
-    
+
     public function mount() {
+        parent::userInit();
+        parent::adminAuthCheck();
         $this->search = '';
         $this->jabatan = '';
         $this->editJabatan = '';

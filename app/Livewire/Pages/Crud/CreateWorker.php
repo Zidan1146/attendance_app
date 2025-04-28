@@ -18,12 +18,14 @@ class CreateWorker extends BasePage
     public WorkerForm $form;
     public $roles;
     public $permissions;
+    public $isSuperAdmin;
 
     public function mount() {
-        parent::authCheck();
+        parent::userInit();
         $this->roles = Jabatan::all();
         $this->permissions = Permission::cases();
         $this->form->jabatan_id = Jabatan::orderBy('id')->first()->id;
+        $this->isSuperAdmin = $this->user->permission->value === Permission::SuperAdmin->value;
     }
 
     public function updated($name, $value)

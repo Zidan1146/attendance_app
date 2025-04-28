@@ -17,12 +17,14 @@ class EditWorker extends BasePage
     public $roles;
     public $permissions;
     public $existingAvatar;
+    public $isSuperAdmin;
 
     public function mount($id) {
-        parent::authCheck();
+        parent::userInit();
         $this->worker = Karyawan::findOrFail($id);
         $this->roles = Jabatan::all();
         $this->permissions = Permission::cases();
+        $this->isSuperAdmin = $this->user->permission->value === Permission::SuperAdmin->value;
         $worker = $this->worker;
 
         $noTelepon = $this->splitPhoneNumber($worker->noTelepon);

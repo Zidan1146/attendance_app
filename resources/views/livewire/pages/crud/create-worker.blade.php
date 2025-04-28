@@ -55,10 +55,12 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="flex flex-col w-full min-w-40 gapy-2">
-                            <label for="permission" class="text-lg">Permission</label>
+                        <div class="flex flex-col w-full min-w-40 gapy-2 {{ !$isSuperAdmin ? 'tooltip tooltip-bottom' : '' }}"
+                            data-tip="Hanya Super Admin yang dapat edit permission">
+                            <label for="permission" class="text-lg text-left">Permission</label>
                             <select wire:model.live="form.permission" name="permission" id="permission"
-                                class="text-lg rounded-sm bg-zinc-50 select select-bordered min-h-6">
+                                class="text-lg rounded-sm bg-zinc-50 select select-bordered min-h-6"
+                                @disabled(!$isSuperAdmin)>
                                 @foreach ($permissions as $permission)
                                     <option value="{{ $permission->value }}">{{ $permission->name }}</option>
                                 @endforeach

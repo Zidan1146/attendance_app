@@ -4,15 +4,15 @@ namespace App\Livewire\Pages;
 
 use App\Enums\StatusAbsen;
 use App\Enums\TipeAbsensi;
-use App\Exports\DailyExport;
 use App\Models\Absensi;
 use App\Models\Karyawan;
 use Carbon\Carbon;
-use Maatwebsite\Excel\Facades\Excel;
 
 class Dashboard extends BasePage
 {
     public $userCount;
+    public $userClockInCount;
+    public $userClockOutCount;
     public $clockInCount;
     public $clockOutCount;
     public $earlyClockOut;
@@ -27,9 +27,10 @@ class Dashboard extends BasePage
     public $categories;
     public $years;
     public $selectedYear;
+    public $isUserAnAdmin;
 
     public function mount() {
-        parent::authCheck();
+        parent::userInit();
         $this->years = Absensi::selectRaw('YEAR(tanggal) as year')
             ->groupBy('year')
             ->orderBy('year', 'desc')
@@ -43,6 +44,68 @@ class Dashboard extends BasePage
         $this->categories = $this->statusAbsenEnum::cases();
         $this->today = Carbon::today();
         $this->dateNow = $now->translatedFormat('l, j F Y');
+        $this->isUserAnAdmin = $this->user->permission->value !== 'user';
+        $this->setStatistics();
+    }
+
+    private function permissionWrapper(callable $adminFunction, callable $userFunction) {
+        if($this->user->permission->value !== 'user') {
+            $adminFunction();
+            return;
+        }
+        $userFunction();
+    }
+
+    private function setStatistics() {
+        $this->permissionWrapper(
+            fn() => $this->setAllStatisticts(),
+            fn() => $this->setSelfStatisticts()
+        );
+    }
+
+    private function setSelfStatisticts() {
+        $this->userClockInCount = $this->user->absensi
+            ->filter(function($absensi) {
+                return
+                    $absensi->jenisAbsen->value === TipeAbsensi::AbsenMasuk->value;
+            })->count();
+        $this->userClockOutCount = $this->clockOutCount = $this->user->absensi
+            ->filter(function($absensi) {
+                return
+                    $absensi->jenisAbsen->value === TipeAbsensi::AbsenKeluar->value;
+            })->count();
+        $this->clockInCount = $this->user->absensi
+            ->filter(function($absensi) {
+                return
+                    $absensi->jenisAbsen->value === TipeAbsensi::AbsenMasuk->value &&
+                    $absensi->status->value === StatusAbsen::TepatWaktu->value;
+            })->count();
+        $this->clockOutCount = $this->user->absensi
+            ->filter(function($absensi) {
+                return
+                    $absensi->jenisAbsen->value === TipeAbsensi::AbsenKeluar->value &&
+                    $absensi->status->value === StatusAbsen::TepatWaktu->value;
+            })->count();
+
+        $this->lateCount = $this->user->absensi
+            ->filter(function($absensi) {
+                return
+                    $absensi->jenisAbsen->value === TipeAbsensi::AbsenMasuk->value &&
+                    $absensi->status->value === StatusAbsen::Terlambat->value;
+            })->count();
+
+        $this->earlyClockOut = $this->user->absensi
+            ->filter(function($absensi) {
+                return
+                    $absensi->jenisAbsen->value === TipeAbsensi::AbsenKeluar->value &&
+                    $absensi->status->value === StatusAbsen::LebihAwal->value;
+            })->count();
+        $this->absentCount = 0;
+
+        $this->loadAttendanceData();
+    }
+
+    private function setAllStatisticts() {
         $this->userCount = Karyawan::count();
         $this->clockInCount = Karyawan::whereHas('absensi', function($query) {
             $query->whereDate('tanggal', $this->today)
@@ -77,6 +140,13 @@ class Dashboard extends BasePage
     }
 
     public function loadAttendanceData() {
+        $this->permissionWrapper(
+            fn() => $this->loadAllAttendanceData(),
+            fn() => $this->loadSelfAttendanceData()
+        );
+    }
+
+    private function loadAllAttendanceData() {
         $data = Absensi::whereYear('tanggal', '=', $this->selectedYear)
             ->get()
             ->groupBy(fn ($a) => Carbon::parse($a->tanggal)->format('F'))
@@ -86,9 +156,14 @@ class Dashboard extends BasePage
         $this->dispatch('attendanceUpdated', $this->attendanceData);
     }
 
-    public function exportXls() {
-        $now = Carbon::now()->startOfDay();
-        return Excel::download(new DailyExport($now->copy()->format('Y-m-d H:i:s')), "absensi_{$now->translatedFormat('j F Y')}.xlsx");
+    private function loadSelfAttendanceData() {
+        $this->attendanceData = $this->user->absensi()
+                ->whereYear('tanggal', '=', $this->selectedYear)
+                ->get()
+                ->groupBy(fn ($a) => Carbon::parse($a->tanggal)->format('F'))
+                ->map(fn ($records) => $records->groupBy('status')->map->count());
+
+        $this->dispatch('attendanceUpdated', $this->attendanceData);
     }
 
     public function render()

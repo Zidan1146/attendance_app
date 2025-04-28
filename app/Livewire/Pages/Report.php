@@ -3,6 +3,7 @@
 namespace App\Livewire\Pages;
 
 use App\Enums\ExportErrorType;
+use App\Enums\Permission;
 use App\Enums\RolePosition;
 use App\Exports\MultiDailyExport;
 use App\Exports\MultiMonthlyExport;
@@ -41,9 +42,10 @@ class Report extends BasePage
     public $exportErrorType;
     public $reportFileType;
     public $isCalendarOpen;
+    public $isAdmin;
 
     public function mount() {
-        parent::authCheck();
+        parent::userInit();
         $this->months = collect(range(1, 12))->mapWithKeys(function ($month) {
             return [$month => Carbon::createFromDate(null, $month, 1)->translatedFormat('F')];
         });
@@ -223,12 +225,15 @@ class Report extends BasePage
 
     public function render()
     {
+        $this->isAdmin = $this->user->permission->value !== Permission::User->value;
+
         $workers = MonthlyAttendanceHelper::getData(
             $this->selectedRole,
             $this->selectedYear,
             $this->selectedMonth,
             null,
-            10
+            10,
+            $this->isAdmin ? null : $this->user->id
         );
 
         $finalWorkers = [];

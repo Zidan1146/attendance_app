@@ -17,7 +17,8 @@ class Worker extends BasePage
     public $selectedRole;
 
     public function mount() {
-        parent::authCheck();
+        parent::userInit();
+        parent::adminAuthCheck();
         $this->roles = Jabatan::all();
     }
 

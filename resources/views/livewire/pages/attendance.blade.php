@@ -46,13 +46,15 @@
                         <span class="label-text">Filter</span>
                     </div>
                     <div class="join">
-                        <select name="" id="" class="select bg-neutral select-bordered join-item" wire:model.live="selectedRole">
-                            <option value="">Semua Jabatan</option>
-                            <option value="-1">Tanpa Jabatan</option>
-                            @foreach ($roles as $jabatan)
-                                <option value="{{ $jabatan->id }}">{{ $jabatan->nama }}</option>
-                            @endforeach
-                        </select>
+                        @if ($user->permission->value !== 'user')
+                            <select name="" id="" class="select bg-neutral select-bordered join-item" wire:model.live="selectedRole">
+                                <option value="">Semua Jabatan</option>
+                                <option value="-1">Tanpa Jabatan</option>
+                                @foreach ($roles as $jabatan)
+                                    <option value="{{ $jabatan->id }}">{{ $jabatan->nama }}</option>
+                                @endforeach
+                            </select>
+                        @endif
                         <select name="" id="" class="select bg-neutral select-bordered join-item" wire:model.live="selectedAttendanceType">
                             <option value="">Semua Jenis Absen</option>
                             @foreach ($attendaceTypes as $type)
@@ -74,8 +76,10 @@
             <table class="table w-full">
                 <thead>
                     <th></th>
-                    <th>Nama</th>
-                    <th>Jabatan</th>
+                    @if ($user->permission->value !== 'user')
+                        <th>Nama</th>
+                        <th>Jabatan</th>
+                    @endif
                     <th>Tanggal</th>
                     <th>Jam</th>
                     <th>Jenis</th>
@@ -101,8 +105,10 @@
                         @endphp
                         <tr>
                             <td>{{ $loop->iteration + $startNumber }}</td>
-                            <td>{{ $absensi->karyawan->nama }}</td>
-                            <td>{{ $absensi->karyawan->jabatan->nama ?? 'Tanpa Jabatan' }}</td>
+                            @if ($user->permission->value !== 'user')
+                                <td>{{ $absensi->karyawan->nama }}</td>
+                                <td>{{ $absensi->karyawan->jabatan->nama ?? 'Tanpa Jabatan' }}</td>
+                            @endif
                             <td>{{ $absensi->tanggal->translatedFormat('j F Y') }}</td>
                             <td>{{ $absensi->waktu }}</td>
                             <td>{{ $jenis }}</td>

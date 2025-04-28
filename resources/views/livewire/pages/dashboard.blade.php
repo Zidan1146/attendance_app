@@ -20,28 +20,30 @@
                 <div class="border-black stat bg-neutral">
                     <div class="stat-title">Masuk Tepat Waktu</div>
                     <div class="stat-value">{{ $clockInCount }}</div>
-                    <div class="stat-desc">{{ $clockInCount }} dari {{ $userCount }} orang</div>
+                    <div class="stat-desc">{{ $clockInCount }} dari {{ $isUserAnAdmin ? $userCount : $userClockInCount }} {{ $isUserAnAdmin ? 'orang' : 'presensi masuk' }}</div>
                 </div>
                 <div class="border-black stat bg-neutral">
                     <div class="stat-title">Terlambat Masuk</div>
                     <div class="stat-value">{{ $lateCount }}</div>
-                    <div class="stat-desc">{{ $lateCount }} dari {{ $userCount }} orang</div>
+                    <div class="stat-desc">{{ $lateCount }} dari {{ $isUserAnAdmin ? $userCount : $userClockInCount }} {{ $isUserAnAdmin ? 'orang' : 'presensi masuk' }}</div>
                 </div>
                 <div class="border-black stat bg-neutral">
                     <div class="stat-title">Keluar Tepat Waktu</div>
                     <div class="stat-value">{{ $clockOutCount }}</div>
-                    <div class="stat-desc">{{ $clockOutCount }} dari {{ $userCount }} orang</div>
+                    <div class="stat-desc">{{ $clockOutCount }} dari {{ $isUserAnAdmin ? $userCount : $userClockOutCount }} {{ $isUserAnAdmin ? 'orang' : 'presensi keluar' }}</div>
                 </div>
                 <div class="border-black stat bg-neutral">
                     <div class="stat-title">Pulang Lebih Awal</div>
                     <div class="stat-value">{{ $earlyClockOut }}</div>
-                    <div class="stat-desc">{{ $earlyClockOut }} dari {{ $userCount }} orang</div>
+                    <div class="stat-desc">{{ $earlyClockOut }} dari {{ $isUserAnAdmin ? $userCount : $userClockOutCount }} {{ $isUserAnAdmin ? 'orang' : 'presensi keluar' }}</div>
                 </div>
-                <div class="border-black stat bg-neutral">
-                    <div class="stat-title">Tidak Absen</div>
-                    <div class="stat-value">{{ $absentCount }}</div>
-                    <div class="stat-desc">{{ $absentCount }} dari {{ $userCount }} orang</div>
-                </div>
+                @if ($isUserAnAdmin)
+                    <div class="border-black stat bg-neutral">
+                        <div class="stat-title">Tidak Absen</div>
+                        <div class="stat-value">{{ $absentCount }}</div>
+                        <div class="stat-desc">{{ $absentCount }} dari {{ $userCount }} orang</div>
+                    </div>
+                @endif
             </div>
             <div class="flex justify-around gap-8">
                 <div class="w-1/2 p-2 border rounded border-primary bg-neutral">
