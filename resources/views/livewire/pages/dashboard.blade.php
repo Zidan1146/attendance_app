@@ -69,6 +69,8 @@
 
                                         const months = Object.keys(data);
                                         const categories = @json($categories);
+                                        console.log(categories);
+                                        console.log(Object.keys(categories[0]));
 
                                         // Extract dataset values
                                         const datasets = categories.map(category => ({
