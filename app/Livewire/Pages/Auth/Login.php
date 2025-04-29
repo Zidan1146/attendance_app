@@ -9,10 +9,10 @@ use Livewire\Component;
 class Login extends Component
 {
 
-    #[Validate('required')]
+    #[Validate('required', message: 'Nama pengguna tidak boleh kosong.')]
     public $username;
 
-    #[Validate('required')]
+    #[Validate('required', message: 'Kata sandi tidak boleh kosong.')]
     public $password;
 
     public function mount() {
@@ -25,7 +25,7 @@ class Login extends Component
         $credentials = $this->validate();
 
         if(!Auth::attempt($credentials)) {
-            session()->flash('error', 'The provided credentials do not match our records.');
+            session()->flash('error', 'Nama pengguna atau kata sandi salah.');
             return;
         }
 

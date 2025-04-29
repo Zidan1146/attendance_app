@@ -7,10 +7,6 @@ use App\Enums\TipeAbsensi;
 use App\Models\Absensi;
 use App\Models\Karyawan;
 use Carbon\Carbon;
-use Exception;
-use Illuminate\Support\Collection;
-
-use function PHPUnit\Framework\isArray;
 
 class Dashboard extends BasePage
 {
@@ -52,13 +48,7 @@ class Dashboard extends BasePage
 
         $this->categories = collect($this->attendanceData)
                 ->flatMap(function ($monthData) {
-                    if($monthData instanceof Collection) {
-                        return $monthData->keys();
-                    }
-                    if(isArray($monthData)) {
-                        return array_keys($monthData);
-                    }
-                    throw new Exception('monthData should be either an array or a collection');
+                    return array_keys($monthData);
                 })
                 ->unique()
                 ->values()
@@ -179,7 +169,7 @@ class Dashboard extends BasePage
     }
 
     private function loadSelfAttendanceData() {
-        $this->attendanceData = $this->user->absensi()
+        $data = $this->user->absensi()
                 ->whereYear('tanggal', '=', $this->selectedYear)
                 ->get()
                 ->groupBy(fn ($a) => Carbon::parse($a->tanggal)->format('F'))
@@ -189,6 +179,7 @@ class Dashboard extends BasePage
                     })->map->count();
                 });
 
+        $this->attendanceData = $data->toArray();
         $this->dispatch('attendanceUpdated', $this->attendanceData);
     }
 

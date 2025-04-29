@@ -4,10 +4,10 @@
         <form wire:submit="login_" class="flex flex-col gap-6 w-96">
             <div class="flex flex-col gap-2">
                 <label for="username" class="text-lg">Nama Pengguna</label>
-                <input type="text" wire:model.live="username"
-                name="username" id="username"
-                placeholder="Masukkan nama pengguna"
-                class="text-lg rounded-sm input input-bordered bg-zinc-50">
+                <livewire:components.ui.text-input
+                    model="username"
+                    placeholder="Masukkan nama pengguna"
+                    class="text-lg rounded-sm input input-bordered bg-zinc-50">
             </div>
             <div class="flex flex-col gap-2">
                 <label for="password" class="text-lg">Kata Sandi</label>
