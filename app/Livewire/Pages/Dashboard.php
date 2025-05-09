@@ -7,6 +7,7 @@ use App\Enums\TipeAbsensi;
 use App\Models\Absensi;
 use App\Models\Karyawan;
 use Carbon\Carbon;
+use Livewire\Attributes\On;
 
 class Dashboard extends BasePage
 {
@@ -18,7 +19,6 @@ class Dashboard extends BasePage
     public $earlyClockOut;
     public $lateCount;
     public $absentCount;
-    public $dateNow;
     public $today;
     public $searchTerm;
     public $jenisAbsenEnum;
@@ -42,7 +42,6 @@ class Dashboard extends BasePage
         $this->jenisAbsenEnum = TipeAbsensi::class;
         $this->statusAbsenEnum = StatusAbsen::class;
         $this->today = Carbon::today();
-        $this->dateNow = $now->translatedFormat('l, j F Y');
         $this->isUserAnAdmin = $this->user->permission->value !== 'user';
         $this->setStatistics();
 
@@ -144,6 +143,12 @@ class Dashboard extends BasePage
 
     public function updatedSelectedYear() {
         $this->loadAttendanceData();
+    }
+
+    #[On('loadChartData')]
+    public function childLoadChartData($value) {
+        $this->selectedYear = $value;
+        $this->loadAllAttendanceData();
     }
 
     public function loadAttendanceData() {
